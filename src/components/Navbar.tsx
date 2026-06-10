@@ -26,8 +26,6 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  if (isHome) return null;
-
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled || !isHome ? 'glass-ultra border-b border-gold-royal/8' : 'bg-transparent'}`}
