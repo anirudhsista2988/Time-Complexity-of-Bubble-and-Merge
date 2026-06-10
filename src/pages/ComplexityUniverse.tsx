@@ -70,46 +70,70 @@ export const ComplexityUniverse: React.FC = () => {
 
   const maxVal = Math.max(...sizes.map(n => fn['O(n²)'](n)));
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty('--mouse-x', `${x}px`);
+    card.style.setProperty('--mouse-y', `${y}px`);
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = -(y - centerY) / 8;
+    const rotateY = (x - centerX) / 8;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px) translateZ(8px)`;
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    const card = e.currentTarget;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) translateZ(0px)';
+  };
+
   return (
-    <div className="min-h-screen pt-14 p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <p className="text-xs text-gold-royal font-bold uppercase tracking-widest mb-1">Complexity Universe</p>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+    <div className="min-h-screen pt-20 p-6 max-w-7xl mx-auto font-general">
+      <div className="mb-10">
+        <p className="text-xs text-gold-royal font-bold uppercase tracking-widest font-space mb-1">Complexity Universe</p>
+        <h1 className="text-3xl font-black text-white font-clash leading-none flex items-center gap-2.5">
           <GitCompare size={22} className="text-gold-royal" />
-          Interactive Complexity Explorer
+          COMPLEXITY EXPLORER
         </h1>
-        <p className="text-titanium text-sm mt-1">Click any complexity class to deep-dive</p>
+        <p className="text-titanium text-sm mt-2">Click any complexity class to inspect key metrics and insights</p>
       </div>
 
       {/* Complexity Class Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
         {COMPLEXITIES.map(({notation, label, color, description, algos, points}) => {
           const isActive = active === notation;
           return (
             <motion.div key={notation}
               onClick={() => setActive(isActive ? null : notation)}
-              whileHover={{scale:1.02}} whileTap={{scale:0.98}}
-              className="cursor-pointer stat-card p-5 rounded-2xl border transition-all"
-              style={{borderColor: isActive ? `${color}50` : 'rgba(255,255,255,0.06)', background: isActive ? `${color}08` : undefined}}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="cursor-pointer stat-card p-6 rounded-2xl border transition-all"
+              style={{
+                borderColor: isActive ? `${color}55` : 'rgba(255,255,255,0.06)',
+                background: isActive ? `${color}08` : undefined
+              }}
             >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-2xl font-black font-mono" style={{color}}>{notation}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full border font-medium" style={{borderColor:`${color}30`, color, background:`${color}10`}}>{label}</span>
+              <div className="flex items-start justify-between mb-4 relative z-10">
+                <span className="text-3xl font-black font-space" style={{color}}>{notation}</span>
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full border font-bold font-space uppercase" style={{borderColor:`${color}35`, color, background:`${color}10`}}>{label}</span>
               </div>
-              <p className="text-xs text-titanium leading-relaxed mb-3">{description}</p>
+              <p className="text-xs text-titanium leading-relaxed mb-4 font-general relative z-10">{description}</p>
               {algos.length > 0 && (
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5 relative z-10">
                   {algos.map(id => (
-                    <span key={id} className="text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/60">
-                      {algorithmMeta[id].name}
+                    <span key={id} className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/60 font-space font-bold uppercase">
+                      {algorithmMeta[id].name.replace(' Sort', '')}
                     </span>
                   ))}
                 </div>
               )}
               {isActive && (
-                <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:'auto'}} className="mt-3 pt-3 border-t border-white/5">
-                  <p className="text-xs font-medium" style={{color}}>Key Insight</p>
-                  <p className="text-xs text-white/60 mt-1">{points}</p>
+                <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:'auto'}} className="mt-4 pt-4 border-t border-white/[0.05] relative z-10">
+                  <p className="text-xs font-bold font-satoshi uppercase tracking-wider" style={{color}}>Key Insight</p>
+                  <p className="text-xs text-white/60 mt-1 font-general leading-relaxed">{points}</p>
                 </motion.div>
               )}
             </motion.div>
@@ -118,30 +142,30 @@ export const ComplexityUniverse: React.FC = () => {
       </div>
 
       {/* Visual Comparison Chart */}
-      <div className="glass rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-4">Growth Rate Comparison</h2>
+      <div className="glass-ultra rounded-2xl p-6 border border-white/[0.05]">
+        <h2 className="text-base font-bold text-white mb-6 font-satoshi uppercase tracking-wider">Growth Rate Comparison Matrix</h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs font-mono">
+          <table className="w-full text-xs font-space">
             <thead>
-              <tr>
-                <th className="text-left text-titanium pb-3 pr-4 font-medium">Complexity</th>
+              <tr className="border-b border-white/[0.04]">
+                <th className="text-left text-titanium pb-3 pr-4 font-bold uppercase tracking-wider">Complexity</th>
                 {sizes.map(s => (
-                  <th key={s} className="text-right text-titanium pb-3 px-3 font-medium">n={s}</th>
+                  <th key={s} className="text-right text-titanium pb-3 px-3 font-bold uppercase tracking-wider font-mono">n={s}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {COMPLEXITIES.map(({notation, color}) => (
-                <tr key={notation} className="border-t border-white/5">
-                  <td className="py-2 pr-4 font-bold" style={{color}}>{notation}</td>
+                <tr key={notation} className="border-b border-white/[0.04] hover:bg-white/[0.015] transition-colors">
+                  <td className="py-3 pr-4 font-black text-sm uppercase" style={{color}}>{notation}</td>
                   {sizes.map(n => {
                     const val = fn[notation](n);
                     const pct = (val / maxVal) * 100;
                     return (
-                      <td key={n} className="py-2 px-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <div className="h-1.5 rounded-full" style={{width:`${Math.min(pct,100)*0.6}px`, background:color, minWidth:'2px'}} />
-                          <span className="text-white/70">{val >= 1e6 ? '∞' : val >= 1000 ? `${(val/1000).toFixed(0)}k` : Math.round(val)}</span>
+                      <td key={n} className="py-3 px-3 text-right font-mono font-medium">
+                        <div className="flex items-center justify-end gap-2.5">
+                          <div className="h-2 rounded-sm shrink-0" style={{width:`${Math.min(pct,100)*0.7}px`, background:color, minWidth:'3px'}} />
+                          <span className="text-white/80">{val >= 1e6 ? '∞' : val >= 1000 ? `${(val/1000).toFixed(0)}k` : Math.round(val)}</span>
                         </div>
                       </td>
                     );

@@ -199,61 +199,66 @@ export const RaceArena: React.FC = () => {
   const winner = !running && finished.length > 0 ? finished[0] : null;
 
   return (
-    <div className="min-h-screen pt-14 bg-[#030303] mesh-bg">
+    <div className="min-h-screen pt-20 bg-[#020202] mesh-bg font-general">
       {/* Countdown overlay */}
       {countdown && <CountdownOverlay onDone={onCountdownDone} />}
 
       {/* Header */}
-      <div className="border-b border-white/[0.05] px-6 py-4 flex items-center gap-4 flex-wrap"
-        style={{ background: 'rgba(5,5,5,0.9)', backdropFilter: 'blur(20px)' }}>
+      <div className="border-b border-white/[0.05] px-6 py-4 flex items-center gap-4 flex-wrap relative z-20"
+        style={{ background: 'rgba(5,5,5,0.45)', backdropFilter: 'blur(24px)' }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[rgba(255,215,0,0.2)] bg-[rgba(255,215,0,0.06)]">
             <Trophy size={18} className="text-[#FFD700]" />
           </div>
           <div>
-            <p className="text-[10px] text-[#FFD700]/50 font-bold uppercase tracking-[0.15em]">Race Arena</p>
-            <h1 className="text-lg font-black text-white">Algorithm Grand Prix</h1>
+            <p className="text-[10px] text-[#FFD700] font-bold uppercase tracking-[0.2em] font-space">Race Arena</p>
+            <h1 className="text-2xl font-black text-white font-clash leading-none">ALGORITHM GRAND PRIX</h1>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex gap-2 ml-auto flex-wrap">
-          {RACE_ALGOS.map(id => {
-            const sel = selected.has(id);
-            const color = ALGO_COLORS[id];
-            return (
-              <button key={id} onClick={() => toggle(id)}
-                className="px-3 py-1.5 text-[11px] rounded-lg font-bold border transition-all"
-                style={{
-                  background: sel ? `${color}15` : 'transparent',
-                  borderColor: sel ? `${color}40` : 'rgba(255,255,255,0.05)',
-                  color: sel ? color : '#636366',
-                  boxShadow: sel ? `0 0 10px ${color}20` : 'none',
-                }}>
-                {algorithmMeta[id].name.replace(' Sort', '')}
-              </button>
-            );
-          })}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.08] text-[11px] text-white/40">
-            Speed:
+        <div className="flex gap-2 ml-auto flex-wrap items-center">
+          <div className="flex gap-1.5 flex-wrap">
+            {RACE_ALGOS.map(id => {
+              const sel = selected.has(id);
+              const color = ALGO_COLORS[id];
+              return (
+                <button key={id} onClick={() => toggle(id)}
+                  className="px-3.5 py-2 text-[10px] rounded-lg font-black font-space border transition-all duration-300 uppercase"
+                  style={{
+                    background: sel ? `${color}15` : 'rgba(255,255,255,0.01)',
+                    borderColor: sel ? `${color}45` : 'rgba(255,255,255,0.04)',
+                    color: sel ? color : '#8E8E93',
+                    boxShadow: sel ? `0 0 12px ${color}20` : 'none',
+                  }}>
+                  {algorithmMeta[id].name.replace(' Sort', '')}
+                </button>
+              );
+            })}
+          </div>
+          
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/[0.04] bg-obsidian-200/50 text-[10px] font-space font-bold text-white/40 uppercase">
+            Speed
             <input type="range" min={5} max={150} value={speed} onChange={e => setSpeed(+e.target.value)}
-              className="w-20 h-0.5 accent-yellow-400" />
+              className="w-20 h-[2px] bg-white/10 rounded-lg appearance-none cursor-pointer accent-gold-royal" />
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.08] text-[11px] text-white/40">
-            n={size}
+          
+          <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/[0.04] bg-obsidian-200/50 text-[10px] font-space font-bold text-white/40 uppercase">
+            Size: {size}
             <input type="range" min={20} max={120} value={size} onChange={e => setSize(+e.target.value)}
-              className="w-16 h-0.5 accent-yellow-400" />
+              className="w-16 h-[2px] bg-white/10 rounded-lg appearance-none cursor-pointer accent-gold-royal" />
           </div>
+          
           {running
-            ? <button onClick={stopRace} className="px-4 py-2 rounded-lg text-sm font-bold bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-all">Stop</button>
-            : <button onClick={startRace} className="btn-primary px-5 py-2 rounded-lg text-sm font-bold">
-                {Object.keys(allFrames).length ? '🏁 Restart' : '🏁 Start Race'}
+            ? <button onClick={stopRace} className="px-5 py-2.5 rounded-full text-xs font-black tracking-widest bg-red-500/10 border border-red-500/22 text-red-400 hover:bg-red-500/20 transition-all font-space uppercase">STOP</button>
+            : <button onClick={startRace} className="btn-primary px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase">
+                {Object.keys(allFrames).length ? '🏁 RESTART' : '🏁 START RACE'}
               </button>
           }
         </div>
       </div>
 
-      <div className="p-6 space-y-4 max-w-screen-xl mx-auto">
+      <div className="p-6 space-y-5 max-w-screen-xl mx-auto relative z-10">
         {/* Winner Banner */}
         <AnimatePresence>
           {winner && !running && (
@@ -261,25 +266,25 @@ export const RaceArena: React.FC = () => {
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="rounded-2xl p-5 flex items-center gap-5 border"
+              className="rounded-2xl p-6 flex items-center gap-6 border glass-ultra"
               style={{
-                background: `linear-gradient(135deg, ${ALGO_COLORS[winner]}08, rgba(0,0,0,0.6))`,
-                borderColor: `${ALGO_COLORS[winner]}40`,
+                background: `linear-gradient(135deg, ${ALGO_COLORS[winner]}08, rgba(6,6,6,0.85))`,
+                borderColor: `${ALGO_COLORS[winner]}45`,
                 boxShadow: `0 0 40px ${ALGO_COLORS[winner]}15`,
               }}
             >
               <div className="text-5xl">🏆</div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-widest mb-1">Race Winner</p>
-                <h2 className="text-2xl font-black" style={{ color: ALGO_COLORS[winner] }}>{algorithmMeta[winner].name}</h2>
-                <p className="text-white/40 text-sm mt-1">
+                <p className="text-white/50 text-xs uppercase tracking-widest font-space mb-1">Race Winner</p>
+                <h2 className="text-3xl font-black font-satoshi" style={{ color: ALGO_COLORS[winner] }}>{algorithmMeta[winner].name.toUpperCase()}</h2>
+                <p className="text-white/40 text-sm mt-1.5 font-general">
                   {allFrames[winner]?.slice(-1)[0]?.comparisons.toLocaleString()} comparisons ·{' '}
                   {allFrames[winner]?.slice(-1)[0]?.swaps.toLocaleString()} swaps
                 </p>
               </div>
               <div className="ml-auto text-right">
-                <p className="text-[#FFD700] font-black text-4xl">P1</p>
-                <p className="text-white/30 text-xs">Grand Prix Winner</p>
+                <p className="text-[#FFD700] font-black text-4xl font-space">P1</p>
+                <p className="text-white/30 text-xs font-space uppercase">Grand Prix Winner</p>
               </div>
             </motion.div>
           )}
@@ -299,46 +304,45 @@ export const RaceArena: React.FC = () => {
             return (
               <motion.div key={id}
                 layout
-                className="rounded-2xl border overflow-hidden"
+                className="rounded-2xl border overflow-hidden glass-ultra"
                 style={{
-                  background: 'rgba(8,8,8,0.9)',
-                  borderColor: isWinner ? `${color}50` : 'rgba(255,255,255,0.05)',
-                  boxShadow: isWinner ? `0 0 30px ${color}20` : 'none',
+                  borderColor: isWinner ? `${color}55` : 'rgba(255,255,255,0.05)',
+                  boxShadow: isWinner ? `0 0 32px ${color}20` : 'none',
                 }}>
                 {/* Card header */}
-                <div className="p-4 flex items-center gap-3 border-b border-white/[0.04]">
-                  <div className="text-3xl font-black w-10 text-center"
-                    style={{ color: rank === 0 ? '#FFD700' : rank === 1 ? '#C0C0C0' : rank === 2 ? '#CD7F32' : 'rgba(255,255,255,0.3)' }}>
+                <div className="p-5 flex items-center gap-4 border-b border-white/[0.04] bg-black/10">
+                  <div className="text-3xl font-black w-10 text-center font-space"
+                    style={{ color: rank === 0 ? '#FFD700' : rank === 1 ? '#C0C0C0' : rank === 2 ? '#CD7F32' : 'rgba(255,255,255,0.25)' }}>
                     P{rank + 1}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-                      <p className="font-black text-white text-base">{m.name}</p>
+                      <div className="w-2.5 h-2.5 rounded-sm" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
+                      <p className="font-bold text-white text-base font-satoshi uppercase tracking-wide">{m.name}</p>
                     </div>
-                    <p className="text-[11px] font-mono mt-0.5" style={{ color: `${color}80` }}>{m.average}</p>
+                    <p className="text-[10px] font-space mt-1 uppercase font-bold" style={{ color: `${color}cc` }}>{m.average}</p>
                   </div>
                   <Speedometer pct={pct} color={color} />
-                  <div className="text-right">
-                    <p className="text-[10px] text-white/30 uppercase tracking-wider">CMP</p>
-                    <p className="text-lg font-black font-mono text-white">{(frame?.comparisons ?? 0).toLocaleString()}</p>
+                  <div className="text-right ml-2">
+                    <p className="text-[9px] text-white/30 uppercase tracking-widest font-space font-bold">CMP</p>
+                    <p className="text-lg font-black font-space text-white stat-number">{(frame?.comparisons ?? 0).toLocaleString()}</p>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-1 bg-white/[0.03]">
+                <div className="h-[2px] bg-white/[0.03]">
                   <div className="h-full transition-all duration-100 race-bar"
                     style={{ width: `${pct}%`, '--algo-color': color } as React.CSSProperties} />
                 </div>
 
                 {/* Mini visualizer */}
-                <div className="h-20 overflow-hidden p-3 pt-2.5 bg-black/30">
+                <div className="h-20 overflow-hidden p-3 pt-2.5 bg-black/35">
                   <MiniBars frame={frame} color={color} />
                 </div>
 
-                <div className="px-4 py-2 flex justify-between text-[10px] text-white/25 border-t border-white/[0.03]">
-                  <span className="font-mono">{Math.round(pct)}% complete</span>
-                  <span className="font-mono">{(frame?.swaps ?? 0).toLocaleString()} swaps</span>
+                <div className="px-5 py-2.5 flex justify-between text-[10px] text-white/30 border-t border-white/[0.03] font-space uppercase font-bold">
+                  <span>{Math.round(pct)}% complete</span>
+                  <span>{(frame?.swaps ?? 0).toLocaleString()} swaps</span>
                 </div>
               </motion.div>
             );
@@ -346,21 +350,20 @@ export const RaceArena: React.FC = () => {
         </div>
 
         {/* Commentary Terminal */}
-        <div className="rounded-2xl border border-white/[0.05] overflow-hidden"
-          style={{ background: 'rgba(5,5,5,0.9)' }}>
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05]">
+        <div className="rounded-2xl border border-white/[0.05] overflow-hidden glass-ultra">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/[0.05] bg-black/15">
             <Activity size={14} className="text-[#FFD700]" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#FFD700]/60">Live Race Commentary</p>
-            <div className={`ml-auto flex items-center gap-1.5 text-[10px] font-bold ${running ? 'text-red-400' : 'text-white/20'}`}>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] font-space text-[#FFD700]/70">Live Race Commentary</p>
+            <div className={`ml-auto flex items-center gap-1.5 text-[9px] font-black font-space ${running ? 'text-red-400' : 'text-white/20'}`}>
               {running && <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />}
               {running ? 'LIVE' : 'IDLE'}
             </div>
           </div>
-          <div ref={commentaryRef} className="p-4 space-y-1.5 max-h-32 overflow-hidden">
+          <div ref={commentaryRef} className="p-5 space-y-1.5 max-h-32 overflow-hidden bg-black/10">
             {commentary.map((c, i) => (
               <motion.p key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                className="text-sm font-mono" style={{ color: i === 0 ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.25)' }}>
-                <span className="text-[#FFD700]/40 mr-2">›</span>{c}
+                className="text-xs font-mono" style={{ color: i === 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)' }}>
+                <span className="text-[#FFD700]/30 mr-2.5">›</span>{c}
               </motion.p>
             ))}
           </div>

@@ -318,67 +318,94 @@ export const CodeStudio: React.FC = () => {
   const [lang, setLang] = useState<Lang>('python');
 
   const code = CODE[algo]?.[lang] ?? '// Code not available for this combination.';
+  const lineCount = code.split('\n').length;
+  const sizeBytes = new Blob([code]).size;
 
   return (
-    <div className="min-h-screen pt-14 flex">
+    <div className="min-h-screen pt-20 flex bg-[#020202] mesh-bg font-general">
       {/* Algo sidebar */}
-      <div className="w-52 border-r border-white/5 glass shrink-0 overflow-y-auto no-scrollbar">
-        <div className="p-4 border-b border-white/5">
-          <p className="text-xs text-gold-royal font-bold uppercase tracking-widest">Code Studio</p>
+      <div className="w-60 border-r border-white/[0.05] glass-ultra shrink-0 overflow-y-auto no-scrollbar relative z-20">
+        <div className="p-5 border-b border-white/[0.05]">
+          <p className="text-[10px] text-gold-royal font-black uppercase tracking-[0.2em] font-space">Code Studio</p>
+          <h2 className="text-xl font-black text-white font-clash mt-1">LIBRARIES</h2>
         </div>
-        <div className="p-2">
+        <div className="p-3">
           {ALGO_IDS.map(id => {
             const m = algorithmMeta[id];
+            const active = algo === id;
             return (
               <button key={id} onClick={() => setAlgo(id)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-1 flex items-center gap-2
-                  ${algo===id ? 'text-white' : 'text-titanium hover:text-white hover:bg-white/5'}`}
-                style={algo===id ? {background:`${m.color}15`, borderLeft:`2px solid ${m.color}`} : {}}
+                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold font-satoshi transition-all duration-300 mb-1 flex items-center gap-3 border
+                  ${active ? 'text-white border-white/5' : 'text-titanium border-transparent hover:text-white hover:bg-white/5'}`}
+                style={active ? { background: `${m.color}12`, borderLeft: `3px solid ${m.color}`, boxShadow: `inset 0 0 8px ${m.color}05` } : {}}
               >
-                <div className="w-2 h-2 rounded-full shrink-0" style={{background:m.color}} />
-                {m.name}
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 6px ${m.color}` }} />
+                {m.name.toUpperCase()}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div className="glass border-b border-white/5 px-6 py-3 flex items-center gap-4">
+      {/* Main workspace */}
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10 p-6">
+        {/* Terminal toolbar header */}
+        <div className="glass-ultra border border-white/[0.05] rounded-t-2xl px-6 py-4 flex items-center gap-4 flex-wrap shrink-0">
           <div className="flex items-center gap-2">
             <Code2 size={16} className="text-gold-royal" />
-            <span className="text-white font-semibold">{algorithmMeta[algo].name}</span>
+            <span className="text-white font-bold font-satoshi uppercase tracking-wider text-sm">{algorithmMeta[algo].name}</span>
           </div>
-          <div className="flex gap-1 ml-4">
+          
+          <div className="flex gap-1 bg-obsidian-200/50 p-1 rounded-xl border border-white/[0.04] ml-6">
             {LANGS.map(({id, label}) => (
               <button key={id} onClick={() => setLang(id)}
-                className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${lang===id ? 'bg-gold-royal/15 text-gold-royal border border-gold-royal/30' : 'text-titanium hover:text-white hover:bg-white/5'}`}>
+                className={`px-3 py-1.5 text-[10px] rounded-lg font-bold font-space uppercase transition-all duration-300 ${lang === id ? 'bg-gold-royal/10 text-gold-royal border border-gold-royal/22' : 'text-[#8E8E93] hover:text-white border-transparent'}`}>
                 {label}
               </button>
             ))}
           </div>
-          <div className="ml-auto">
+
+          <div className="ml-auto flex items-center gap-4">
+            {/* Copy button */}
             <CopyButton text={code} />
           </div>
         </div>
 
-        {/* Code Editor */}
-        <div className="flex-1 overflow-auto">
-          <SyntaxHighlighter
-            language={lang === 'cpp' ? 'cpp' : lang === 'c' ? 'c' : lang}
-            style={atomDark}
-            showLineNumbers
-            lineNumberStyle={{ color: '#3A3A3C', fontSize: '11px', paddingRight: '16px' }}
-            customStyle={{
-              margin: 0, padding: '24px', background: '#080808',
-              fontSize: '13px', lineHeight: '1.7', height: '100%',
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-          >
-            {code}
-          </SyntaxHighlighter>
+        {/* Developer Console Code Editor Frame with side Telemetry bezels */}
+        <div className="flex-1 border-x border-b border-white/[0.05] bg-obsidian-400 rounded-b-2xl overflow-hidden flex flex-col relative">
+          
+          {/* Subtle top reflection strip */}
+          <div className="absolute top-0 inset-x-0 h-px bg-white/5 pointer-events-none" />
+          
+          {/* Editor viewport */}
+          <div className="flex-1 overflow-auto relative min-h-0 bg-obsidian-DEFAULT">
+            <SyntaxHighlighter
+              language={lang === 'cpp' ? 'cpp' : lang === 'c' ? 'c' : lang}
+              style={atomDark}
+              showLineNumbers
+              lineNumberStyle={{ color: 'rgba(255,255,255,0.15)', fontSize: '10px', paddingRight: '20px', fontFamily: 'Space Grotesk' }}
+              customStyle={{
+                margin: 0, padding: '28px', background: 'transparent',
+                fontSize: '13px', lineHeight: '1.75', height: '100%',
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              {code}
+            </SyntaxHighlighter>
+          </div>
+
+          {/* Telemetry metadata footer bezel */}
+          <div className="border-t border-white/[0.05] bg-black/45 backdrop-blur-md px-6 py-2.5 flex items-center justify-between text-[9px] font-space text-white/35 uppercase tracking-widest shrink-0">
+            <div className="flex items-center gap-6">
+              <span>Status: <span className="text-green-400 font-bold">READY // COMPILING</span></span>
+              <span>Lines: <span className="text-white/60 font-mono font-bold">{lineCount}</span></span>
+              <span>Size: <span className="text-white/60 font-mono font-bold">{sizeBytes} B</span></span>
+            </div>
+            <div className="flex items-center gap-6">
+              <span>Encoding: <span className="text-white/60 font-bold">UTF-8</span></span>
+              <span>Exclusive License: <span className="text-gold-royal font-bold">RRR-PLATFORM</span></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { SortBarsCanvas } from '../components/SortBarsCanvas';
+import { HologramHeroCanvas } from '../components/HologramHeroCanvas';
 import { ArrowRight, BarChart2, Beaker, Trophy, TrendingUp, Zap } from 'lucide-react';
 import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { AlgorithmId } from '../types/sorting';
@@ -191,6 +192,10 @@ export const Home: React.FC = () => {
       {/* ──── HERO ──────────────────────────────── */}
       <motion.section style={{ opacity: heroOpacity, y: heroY }}
         className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-14 overflow-hidden">
+        
+        {/* Hologram Telemetry HUD overlay */}
+        <HologramHeroCanvas />
+
         {/* Scanning line */}
         <div className="scan-line" />
 
@@ -214,7 +219,7 @@ export const Home: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-10 text-[11px] font-bold uppercase tracking-[0.15em]"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-10 text-[11px] font-bold uppercase tracking-[0.15em] font-space"
             style={{
               background: 'rgba(255,215,0,0.06)',
               border: '1px solid rgba(255,215,0,0.2)',
@@ -232,8 +237,8 @@ export const Home: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h1 className="font-black leading-none tracking-[-0.04em] mb-4 select-none gold-text gold-glow"
-              style={{ fontSize: 'clamp(80px, 20vw, 200px)' }}>
+            <h1 className="font-black leading-none select-none gold-text gold-glow font-clash tracking-tighter mb-4"
+              style={{ fontSize: 'clamp(90px, 22vw, 220px)' }}>
               RRR
             </h1>
           </motion.div>
@@ -243,11 +248,11 @@ export const Home: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.8 }}
           >
-            <h2 className="text-xl md:text-3xl font-light text-white/60 tracking-[0.1em] uppercase mb-3">
+            <h2 className="text-xl md:text-3xl font-bold text-white/75 tracking-[0.05em] uppercase mb-3 font-satoshi">
               Rapid Recursive Rearrangement
             </h2>
             <div className="energy-line w-64 mx-auto mb-6" />
-            <p className="text-base md:text-lg text-white/35 font-light tracking-[0.15em] uppercase mb-14">
+            <p className="text-sm md:text-base text-[#FFD700] tracking-[0.2em] uppercase mb-14 font-space font-semibold">
               From Chaos to Order
             </p>
           </motion.div>
@@ -257,16 +262,16 @@ export const Home: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 relative z-10"
           >
-            <Link to="/dashboard" className="btn-primary px-8 py-3.5 rounded-full text-sm font-bold inline-flex items-center gap-2 relative overflow-hidden">
-              Enter Platform <ArrowRight size={16} />
+            <Link to="/dashboard" className="btn-primary px-8 py-3.5 rounded-full text-xs font-bold inline-flex items-center gap-2 relative overflow-hidden transition-all duration-300">
+              Enter Platform <ArrowRight size={14} />
             </Link>
-            <Link to="/lab" className="btn-outline px-8 py-3.5 rounded-full text-sm font-semibold inline-flex items-center gap-2">
-              <Beaker size={15} /> Open Sort Lab
+            <Link to="/lab" className="btn-outline px-8 py-3.5 rounded-full text-xs font-bold inline-flex items-center gap-2 transition-all duration-300">
+              <Beaker size={14} /> Open Sort Lab
             </Link>
-            <Link to="/race" className="btn-outline px-8 py-3.5 rounded-full text-sm font-semibold inline-flex items-center gap-2">
-              <Trophy size={15} /> Race Arena
+            <Link to="/race" className="btn-outline px-8 py-3.5 rounded-full text-xs font-bold inline-flex items-center gap-2 transition-all duration-300">
+              <Trophy size={14} /> Race Arena
             </Link>
           </motion.div>
 
@@ -275,7 +280,7 @@ export const Home: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1 }}
-            className="flex items-center justify-center gap-8 md:gap-16"
+            className="flex items-center justify-center gap-8 md:gap-16 relative z-10"
           >
             {[
               { label: 'Algorithms', value: algoCount },
@@ -283,8 +288,8 @@ export const Home: React.FC = () => {
               { label: 'Operations', value: opsCount.toLocaleString() },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
-                <p className="text-2xl md:text-3xl font-black gold-text-static stat-number">{value}</p>
-                <p className="text-[10px] text-white/30 uppercase tracking-[0.15em] mt-1 font-medium">{label}</p>
+                <p className="text-2xl md:text-4xl font-extrabold gold-text-static stat-number font-clash tracking-tight">{value}</p>
+                <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] mt-1 font-bold font-space">{label}</p>
               </div>
             ))}
           </motion.div>
@@ -300,8 +305,8 @@ export const Home: React.FC = () => {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFD700]/60 mb-4">Algorithm Library</p>
-          <h2 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFD700]/60 mb-4 font-space">Algorithm Library</p>
+          <h2 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4 font-clash tracking-tighter">
             10 Premium<br />
             <span className="gold-text">Algorithms</span>
           </h2>
@@ -323,8 +328,8 @@ export const Home: React.FC = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFD700]/60 mb-4">Platform Modules</p>
-          <h2 className="text-4xl md:text-6xl font-black text-white leading-tight">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#FFD700]/60 mb-4 font-space">Platform Modules</p>
+          <h2 className="text-4xl md:text-6xl font-black text-white leading-tight font-clash tracking-tighter">
             Built for<br />
             <span className="gold-text">Excellence</span>
           </h2>

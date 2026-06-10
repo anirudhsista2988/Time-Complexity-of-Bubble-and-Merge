@@ -87,18 +87,18 @@ export const LearningCenter: React.FC = () => {
   const content = LEARN_CONTENT[activeAlgo];
 
   const sections = [
-    { id:'theory',   label:'Theory',            content: <p className="text-white/70 leading-relaxed">{content.theory}</p> },
-    { id:'working',  label:'How It Works',      content: <ol className="space-y-2">{content.working.map((s,i)=><li key={i} className="flex gap-3"><span className="text-gold-royal font-bold font-mono text-sm w-5 shrink-0">{i+1}.</span><span className="text-white/70 text-sm">{s}</span></li>)}</ol> },
-    { id:'usecases', label:'Real-world Use Cases', content: <ul className="space-y-1">{content.useCases.map((s,i)=><li key={i} className="text-white/70 text-sm flex items-start gap-2"><span className="text-gold-royal mt-0.5">▸</span>{s}</li>)}</ul> },
-    { id:'mistakes', label:'Common Mistakes',   content: <ul className="space-y-1">{content.mistakes.map((s,i)=><li key={i} className="text-red-400/80 text-sm flex items-start gap-2"><span className="mt-0.5">⚠</span>{s}</li>)}</ul> },
-    { id:'tips',     label:'Interview Tips',    content: <ul className="space-y-1">{content.tips.map((s,i)=><li key={i} className="text-green-400/80 text-sm flex items-start gap-2"><span className="mt-0.5">✓</span>{s}</li>)}</ul> },
-    { id:'pseudo',   label:'Pseudocode',        content: <div className="space-y-1">{meta.pseudocode.map((l,i)=><div key={i} className="px-3 py-1.5 rounded text-xs font-mono bg-black/40 text-gold-royal border-l-2 border-gold-royal/20">{l}</div>)}</div> },
-    { id:'complexity',label:'Complexity Analysis', content: (
-      <div className="grid grid-cols-2 gap-3">
-        {[{l:'Best Case',v:meta.best},{l:'Average',v:meta.average},{l:'Worst Case',v:meta.worst},{l:'Space',v:meta.space}].map(({l,v})=>(
-          <div key={l} className="p-3 rounded-lg bg-black/40 border border-white/5">
-            <p className="text-xs text-titanium mb-1">{l}</p>
-            <p className="text-sm font-mono font-bold text-gold-royal">{v}</p>
+    { id:'theory',   label:'Theory Breakdown',  content: <p className="text-white/70 leading-relaxed font-general text-sm md:text-base">{content.theory}</p> },
+    { id:'working',  label:'Execution Protocol',content: <ol className="space-y-3 font-general">{content.working.map((s,i)=><li key={i} className="flex gap-4"><span className="text-gold-royal font-black font-space text-sm w-5 shrink-0">{(i+1).toString().padStart(2, '0')}.</span><span className="text-white/75 text-sm md:text-base leading-relaxed">{s}</span></li>)}</ol> },
+    { id:'usecases', label:'Production Deployments', content: <ul className="space-y-2 font-general">{content.useCases.map((s,i)=><li key={i} className="text-white/75 text-sm md:text-base flex items-start gap-2.5"><span className="text-gold-royal mt-1">▸</span>{s}</li>)}</ul> },
+    { id:'mistakes', label:'Anti-Patterns & Pitfalls', content: <ul className="space-y-2 font-general">{content.mistakes.map((s,i)=><li key={i} className="text-red-400/80 text-sm md:text-base flex items-start gap-2.5"><span className="mt-1">⚠️</span>{s}</li>)}</ul> },
+    { id:'tips',     label:'Technical Interview Drills', content: <ul className="space-y-2 font-general">{content.tips.map((s,i)=><li key={i} className="text-green-400/80 text-sm md:text-base flex items-start gap-2.5"><span className="mt-1">✓</span>{s}</li>)}</ul> },
+    { id:'pseudo',   label:'Algorithmic Pseudocode', content: <div className="space-y-1.5 font-mono">{meta.pseudocode.map((l,i)=><div key={i} className="px-3.5 py-2.5 rounded-lg text-xs bg-black/45 text-gold-royal border-l-3 border-gold-royal/30 leading-relaxed">{l.replace(/ /g, '\u00a0')}</div>)}</div> },
+    { id:'complexity',label:'Complexity Analysis Matrix', content: (
+      <div className="grid grid-cols-2 gap-4 font-space">
+        {[{l:'Best Case',v:meta.best,c:'#30D158'},{l:'Average',v:meta.average,c:'#FFD700'},{l:'Worst Case',v:meta.worst,c:'#FF453A'},{l:'Space Complexity',v:meta.space,c:'#5AC8FA'}].map(({l,v,c})=>(
+          <div key={l} className="p-4 rounded-xl bg-black/40 border border-white/[0.04]">
+            <p className="text-[10px] text-white/30 uppercase font-bold tracking-wider mb-1.5">{l}</p>
+            <p className="text-base font-black font-space" style={{color:c}}>{v}</p>
           </div>
         ))}
       </div>
@@ -106,58 +106,60 @@ export const LearningCenter: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen pt-14 flex">
-      {/* Left: Algorithm List */}
-      <div className="w-56 border-r border-white/5 glass shrink-0 overflow-y-auto no-scrollbar">
-        <div className="p-4 border-b border-white/5">
-          <p className="text-xs text-gold-royal font-bold uppercase tracking-widest">Learning Center</p>
+    <div className="min-h-screen pt-20 flex bg-[#020202] mesh-bg font-general">
+      {/* Left: Algorithm List Selector */}
+      <div className="w-60 border-r border-white/[0.05] glass-ultra shrink-0 overflow-y-auto no-scrollbar relative z-20">
+        <div className="p-5 border-b border-white/[0.05]">
+          <p className="text-[10px] text-gold-royal font-black uppercase tracking-[0.2em] font-space">Learning Center</p>
+          <h2 className="text-xl font-black text-white font-clash mt-1">SYLLABUS</h2>
         </div>
-        <div className="p-2">
+        <div className="p-3">
           {ALGO_IDS.map(id => {
             const m = algorithmMeta[id];
+            const active = activeAlgo === id;
             return (
               <button key={id} onClick={() => { setActiveAlgo(id); setOpenSection('theory'); }}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all mb-1 flex items-center gap-2
-                  ${activeAlgo===id ? 'text-white' : 'text-titanium hover:text-white hover:bg-white/5'}`}
-                style={activeAlgo===id ? {background:`${m.color}15`, borderLeft:`2px solid ${m.color}`} : {}}
+                className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold font-satoshi transition-all duration-300 mb-1 flex items-center gap-3 border
+                  ${active ? 'text-white border-white/5' : 'text-titanium border-transparent hover:text-white hover:bg-white/5'}`}
+                style={active ? { background: `${m.color}12`, borderLeft: `3px solid ${m.color}`, boxShadow: `inset 0 0 8px ${m.color}05` } : {}}
               >
-                <div className="w-2 h-2 rounded-full shrink-0" style={{background:m.color}} />
-                {m.name}
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: m.color, boxShadow: `0 0 6px ${m.color}` }} />
+                {m.name.toUpperCase()}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Right: Content */}
-      <div className="flex-1 overflow-y-auto p-8">
+      {/* Right: Content panel */}
+      <div className="flex-1 overflow-y-auto p-8 relative z-10">
         <motion.div key={activeAlgo} initial={{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:0.3}}>
           <div className="flex items-start gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-1">{meta.name}</h1>
-              <div className="flex gap-2 flex-wrap">
-                <span className="text-xs font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-titanium">Avg: {meta.average}</span>
-                <span className="text-xs font-mono px-2 py-1 rounded bg-white/5 border border-white/10 text-titanium">Space: {meta.space}</span>
-                <span className={`text-xs px-2 py-1 rounded font-medium ${meta.stable ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                  {meta.stable ? 'Stable' : 'Unstable'}
+              <h1 className="text-3xl md:text-4.5xl font-black text-white font-clash leading-none tracking-tight uppercase mb-3">{meta.name}</h1>
+              <div className="flex gap-2 flex-wrap font-space font-bold uppercase text-[9px]">
+                <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/[0.06] text-white/55">Avg: {meta.average}</span>
+                <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/[0.06] text-white/55">Space: {meta.space}</span>
+                <span className={`px-2.5 py-1 rounded-md ${meta.stable ? 'bg-green-500/10 text-green-400 border border-green-500/22' : 'bg-red-500/10 text-red-400 border border-red-500/22'}`}>
+                  {meta.stable ? 'STABLE' : 'UNSTABLE'}
                 </span>
-                <span className="text-xs px-2 py-1 rounded font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  {meta.inPlace ? 'In-Place' : 'Extra Space'}
+                <span className="px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/22">
+                  {meta.inPlace ? 'IN-PLACE' : 'EXTRA SPACE'}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Collapsible Sections */}
-          <div className="space-y-3">
+          {/* Collapsible Sections Accordion */}
+          <div className="space-y-4">
             {sections.map(({id, label, content}) => (
-              <div key={id} className="glass rounded-2xl overflow-hidden border border-white/5">
+              <div key={id} className="glass-ultra rounded-2xl overflow-hidden border border-white/[0.05]">
                 <button
                   onClick={() => setOpenSection(openSection===id ? null : id)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-4.5 text-left hover:bg-white/[0.02] transition-colors relative z-10"
                 >
-                  <span className="text-sm font-semibold text-white">{label}</span>
-                  <ChevronDown size={16} className={`text-titanium transition-transform ${openSection===id ? 'rotate-180' : ''}`} />
+                  <span className="text-sm font-bold text-white font-satoshi uppercase tracking-wider">{label}</span>
+                  <ChevronDown size={15} className={`text-titanium transition-transform duration-300 ${openSection===id ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {openSection===id && (
@@ -166,7 +168,7 @@ export const LearningCenter: React.FC = () => {
                       transition={{duration:0.25}}
                       className="overflow-hidden"
                     >
-                      <div className="px-5 pb-5">{content}</div>
+                      <div className="px-6 pb-6 relative z-10">{content}</div>
                     </motion.div>
                   )}
                 </AnimatePresence>

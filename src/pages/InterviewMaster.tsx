@@ -31,25 +31,25 @@ function QACard({item, idx}: {item:typeof QA[0], idx:number}) {
   const diffColor = item.difficulty==='Easy'?'#30D158':item.difficulty==='Medium'?'#FF9F0A':'#FF453A';
   return (
     <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:idx*0.04}}
-      className="glass rounded-xl overflow-hidden border border-white/5">
-      <button className="w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-white/[0.02] transition-colors" onClick={() => setOpen(v=>!v)}>
-        <span className="text-xs px-2 py-0.5 rounded-full border shrink-0 mt-0.5 font-medium" style={{borderColor:`${diffColor}30`,color:diffColor,background:`${diffColor}10`}}>
+      className="glass-ultra rounded-xl overflow-hidden border border-white/[0.05]">
+      <button className="w-full px-5 py-4 flex items-start gap-4 text-left hover:bg-white/[0.02] transition-colors relative z-10" onClick={() => setOpen(v=>!v)}>
+        <span className="text-[9px] px-2.5 py-0.5 rounded-full border shrink-0 mt-0.5 font-black font-space uppercase" style={{borderColor:`${diffColor}35`,color:diffColor,background:`${diffColor}10`}}>
           {item.difficulty}
         </span>
         <div className="flex-1">
-          <p className="text-sm text-white font-medium leading-relaxed">{item.q}</p>
-          <div className="flex gap-1 mt-2 flex-wrap">
-            {item.company.map(c => <span key={c} className="text-xs text-titanium border border-white/10 px-2 py-0.5 rounded">{c}</span>)}
+          <p className="text-sm text-white font-bold font-satoshi leading-relaxed">{item.q}</p>
+          <div className="flex gap-1.5 mt-2.5 flex-wrap">
+            {item.company.map(c => <span key={c} className="text-[10px] text-titanium border border-white/[0.06] bg-white/[0.02] px-2 py-0.5 rounded-md font-space font-bold uppercase">{c}</span>)}
           </div>
         </div>
-        <ChevronDown size={15} className={`text-titanium mt-0.5 shrink-0 transition-transform ${open?'rotate-180':''}`} />
+        <ChevronDown size={14} className={`text-titanium mt-0.5 shrink-0 transition-transform duration-300 ${open?'rotate-180':''}`} />
       </button>
       <AnimatePresence>
         {open && (
           <motion.div initial={{height:0,opacity:0}} animate={{height:'auto',opacity:1}} exit={{height:0,opacity:0}} className="overflow-hidden">
-            <div className="px-5 pb-4 pt-0">
-              <div className="p-4 bg-black/40 rounded-lg border border-gold-royal/10">
-                <p className="text-sm text-white/75 leading-relaxed">{item.a}</p>
+            <div className="px-5 pb-5 pt-0 relative z-10">
+              <div className="p-4 bg-black/40 rounded-xl border border-gold-royal/15 leading-relaxed text-sm text-white/75 font-general">
+                {item.a}
               </div>
             </div>
           </motion.div>
@@ -64,44 +64,44 @@ export const InterviewMaster: React.FC = () => {
   const filtered = company ? QA.filter(q => q.company.includes(company) || q.company.includes('All')) : QA;
 
   return (
-    <div className="min-h-screen pt-14 p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <p className="text-xs text-gold-royal font-bold uppercase tracking-widest mb-1">Interview Master</p>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+    <div className="min-h-screen pt-20 p-6 max-w-7xl mx-auto font-general relative z-10">
+      <div className="mb-10">
+        <p className="text-xs text-gold-royal font-bold uppercase tracking-widest font-space mb-1">Interview Master</p>
+        <h1 className="text-3xl font-black text-white font-clash leading-none flex items-center gap-2.5">
           <Zap size={22} className="text-gold-royal" />
-          FAANG Interview Preparation
+          INTERVIEW PREPARATION
         </h1>
-        <p className="text-titanium text-sm mt-1">Sorting algorithms from a senior engineer's perspective</p>
+        <p className="text-titanium text-sm mt-2">Sorting algorithm insights curated from a FAANG perspective</p>
       </div>
 
       {/* Complexity Cheatsheet */}
-      <div className="glass rounded-2xl overflow-hidden mb-8">
-        <div className="p-4 border-b border-white/5">
-          <p className="text-sm font-semibold text-white">Complexity Cheat Sheet</p>
+      <div className="glass-ultra rounded-2xl overflow-hidden mb-10 border border-white/[0.05]">
+        <div className="px-5 py-4 border-b border-white/[0.04] bg-black/10">
+          <p className="text-sm font-bold text-white font-satoshi uppercase tracking-wider">Complexity Cheat Sheet</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-white/5">
+              <tr className="border-b border-white/[0.04] bg-black/5">
                 {['Algorithm','Best','Average','Worst','Space','Stable','When to Use'].map(h => (
-                  <th key={h} className="px-4 py-2.5 text-left text-titanium font-medium uppercase tracking-wider text-[10px]">{h}</th>
+                  <th key={h} className="px-5 py-3.5 text-left text-white/30 font-space font-black uppercase tracking-wider text-[10px]">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {CHEATSHEET.map((row, i) => (
-                <tr key={i} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                  <td className="px-4 py-3 text-white font-medium">{row.algo}</td>
-                  <td className="px-4 py-3 font-mono text-green-400">{row.best}</td>
-                  <td className="px-4 py-3 font-mono text-gold-royal">{row.avg}</td>
-                  <td className="px-4 py-3 font-mono text-red-400">{row.worst}</td>
-                  <td className="px-4 py-3 font-mono text-titanium">{row.space}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${row.stable ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-                      {row.stable ? 'Yes' : 'No'}
+                <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.015] transition-colors">
+                  <td className="px-5 py-3.5 text-white font-bold font-satoshi uppercase tracking-wide">{row.algo}</td>
+                  <td className="px-5 py-3.5 font-mono text-green-400 font-bold">{row.best}</td>
+                  <td className="px-5 py-3.5 font-mono text-gold-royal font-bold">{row.avg}</td>
+                  <td className="px-5 py-3.5 font-mono text-red-400 font-bold">{row.worst}</td>
+                  <td className="px-5 py-3.5 font-mono text-titanium">{row.space}</td>
+                  <td className="px-5 py-3.5">
+                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-space font-black uppercase ${row.stable ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                      {row.stable ? 'YES' : 'NO'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-titanium max-w-[200px]">{row.when}</td>
+                  <td className="px-5 py-3.5 text-white/60 font-general max-w-[240px]">{row.when}</td>
                 </tr>
               ))}
             </tbody>
@@ -110,21 +110,21 @@ export const InterviewMaster: React.FC = () => {
       </div>
 
       {/* Company Filter */}
-      <div className="flex gap-2 mb-6 flex-wrap">
+      <div className="flex gap-1.5 mb-8 flex-wrap bg-obsidian-200/50 p-1 rounded-xl border border-white/[0.04] w-fit">
         <button onClick={() => setCompany(null)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${!company ? 'bg-gold-royal/15 border-gold-royal/40 text-gold-royal' : 'border-white/10 text-titanium hover:text-white'}`}>
+          className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider font-space border transition-all duration-300 ${!company ? 'bg-gold-royal/10 border-gold-royal/22 text-gold-royal' : 'border-transparent text-titanium hover:text-white'}`}>
           All Companies
         </button>
         {COMPANIES.map(c => (
           <button key={c} onClick={() => setCompany(company===c?null:c)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${company===c ? 'bg-gold-royal/15 border-gold-royal/40 text-gold-royal' : 'border-white/10 text-titanium hover:text-white'}`}>
+            className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider font-space border transition-all duration-300 ${company===c ? 'bg-gold-royal/10 border-gold-royal/22 text-gold-royal' : 'border-transparent text-titanium hover:text-white'}`}>
             {c}
           </button>
         ))}
       </div>
 
       {/* Q&A */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {filtered.map((item, i) => <QACard key={i} item={item} idx={i} />)}
       </div>
     </div>
