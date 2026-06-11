@@ -6,15 +6,21 @@ import {
 } from 'chart.js';
 import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { AlgorithmId } from '../types/sorting';
-import { BarChart2, Loader2 } from 'lucide-react';
+import { BarChart2, Loader2, Copy, Check } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend, Filler);
 
-const SIZES = [10, 50, 100, 250, 500, 1000];
-const ALGOS: AlgorithmId[] = ['bubble', 'insertion', 'selection', 'merge', 'quick', 'heap', 'shell'];
-const COLORS = ['#FFD700', '#FF9F0A', '#30D158', '#0A84FF', '#BF5AF2', '#FF453A', '#AEAEB2'];
+const SIZES = [100, 500, 1000, 5000, 10000];
+const ALGOS: AlgorithmId[] = ['bubble', 'selection', 'insertion', 'merge', 'quick', 'heap', 'radix', 'shell'];
 
-interface BenchResult { algoId: AlgorithmId; size: number; time: number; comparisons: number; swaps: number; }
+interface BenchResult {
+  algoId: AlgorithmId;
+  size: number;
+  time: number;
+  comparisons: number;
+  swaps: number;
+  memory: number; // Peak memory in KB
+}
 
 const chartOptions = {
   responsive: true,
@@ -59,25 +65,28 @@ const HeatCell: React.FC<{ value: number; max: number; label: string }> = ({ val
       style={{ background: bg, borderColor: border, boxShadow: pct > 0.7 ? `0 0 10px ${bg}` : 'none' }}
       title={label}>
       <span className="text-[10px] font-space font-black text-white/95">
-        {value > 999 ? `${(value / 1000).toFixed(0)}k` : value}
+        {value > 999 ? `${(value / 1000).toFixed(0)}k` : (value % 1 === 0 ? value.toFixed(0) : value.toFixed(1))}
       </span>
     </div>
   );
 };
 
-type Metric = 'time' | 'comparisons' | 'swaps';
+type Metric = 'time' | 'comparisons' | 'swaps' | 'memory';
 
 export const Analytics: React.FC = () => {
   const [results, setResults] = useState<BenchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [metric, setMetric] = useState<Metric>('comparisons');
+  const [metric, setMetric] = useState<Metric>('time');
+  const [copied, setCopied] = useState(false);
 
   const run = async () => {
     setLoading(true);
-    const allResults: BenchResult[] = [];
+    setProgress(0);
+    setResults([]);
     const total = ALGOS.length * SIZES.length;
     let done = 0;
+    
     for (const id of ALGOS) {
       for (const s of SIZES) {
         try {
@@ -88,27 +97,28 @@ export const Analytics: React.FC = () => {
           });
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
           const data = await res.json();
-          allResults.push(data);
+          // Append to results state incrementally for real-time visualization updates
+          setResults(prev => [...prev, data]);
         } catch (err) {
           console.error("Failed to run benchmark for", id, s, err);
-          allResults.push({ algoId: id, size: s, time: 0, comparisons: 0, swaps: 0 });
+          setResults(prev => [...prev, { algoId: id, size: s, time: 0, comparisons: 0, swaps: 0, memory: 0 }]);
         }
         done++;
         setProgress(Math.round((done / total) * 100));
+        // Yield thread execution briefly to keep UI smooth
         await new Promise(r => setTimeout(r, 1));
       }
     }
-    setResults(allResults);
     setLoading(false);
   };
 
   const lineData = {
     labels: SIZES.map(String),
-    datasets: ALGOS.map((id, i) => ({
+    datasets: ALGOS.map((id) => ({
       label: algorithmMeta[id].name,
       data: SIZES.map(s => results.find(r => r.algoId === id && r.size === s)?.[metric] ?? null),
-      borderColor: COLORS[i],
-      backgroundColor: `${COLORS[i]}05`,
+      borderColor: algorithmMeta[id].color,
+      backgroundColor: `${algorithmMeta[id].color}05`,
       fill: false,
       tension: 0.4,
       pointRadius: 4,
@@ -122,15 +132,50 @@ export const Analytics: React.FC = () => {
     datasets: [{
       label: `${metric.toUpperCase()} AT N=${SIZES[SIZES.length - 1]}`,
       data: ALGOS.map(id => results.find(r => r.algoId === id && r.size === SIZES[SIZES.length - 1])?.[metric] ?? 0),
-      backgroundColor: ALGOS.map((_, i) => `${COLORS[i]}30`),
-      borderColor: COLORS,
+      backgroundColor: ALGOS.map(id => `${algorithmMeta[id].color}30`),
+      borderColor: ALGOS.map(id => algorithmMeta[id].color),
       borderWidth: 1.5,
       borderRadius: 6,
     }],
   };
 
-  // Heatmap: algos × sizes for comparisons
-  const heatMax = results.reduce((m, r) => Math.max(m, r.comparisons), 0);
+  const heatMax = results.reduce((m, r) => Math.max(m, r[metric] ?? 0), 0);
+
+  const generateMarkdownReport = () => {
+    const lastSize = SIZES[SIZES.length - 1];
+    const sortedAlgos = [...ALGOS].map(id => {
+      const sizeResults = results.filter(r => r.algoId === id);
+      const r = sizeResults.find(res => res.size === lastSize) || sizeResults[sizeResults.length - 1];
+      return { id, r };
+    }).sort((a, b) => (a.r?.time ?? Infinity) - (b.r?.time ?? Infinity));
+
+    let md = `# RRR SORTING ALGORITHM BENCHMARK REPORT\n`;
+    md += `*Generated: ${new Date().toLocaleString()}*\n\n`;
+    md += `## Telemetry Metrics at Size N = ${lastSize}\n\n`;
+    md += `| Rank | Algorithm | Time (ms) | Comparisons | Swaps | Peak Memory (KB) | Average Complexity | Stable |\n`;
+    md += `| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |\n`;
+    
+    sortedAlgos.forEach((item, index) => {
+      const m = algorithmMeta[item.id];
+      const r = item.r;
+      if (r) {
+        md += `| ${index + 1} | ${m.name} | ${r.time.toFixed(3)} ms | ${r.comparisons.toLocaleString()} | ${r.swaps.toLocaleString()} | ${r.memory ? r.memory.toFixed(2) + ' KB' : 'N/A'} | ${m.average} | ${m.stable ? 'Yes' : 'No'} |\n`;
+      }
+    });
+    
+    md += `\n## Diagnostics Analysis\n\n`;
+    const fastest = sortedAlgos[0];
+    const slowest = sortedAlgos[sortedAlgos.length - 1];
+    if (fastest?.r && slowest?.r) {
+      const ratio = (slowest.r.time / (fastest.r.time || 1)).toFixed(1);
+      md += `- **Fastest Algorithm**: ${algorithmMeta[fastest.id].name} (${fastest.r.time.toFixed(3)} ms)\n`;
+      md += `- **Slowest Algorithm**: ${algorithmMeta[slowest.id].name} (${slowest.r.time.toFixed(3)} ms)\n`;
+      md += `- **Speed Gap**: ${algorithmMeta[fastest.id].name} is **${ratio}x** faster than ${algorithmMeta[slowest.id].name}.\n`;
+    }
+    
+    md += `\n*End of diagnostics report.*`;
+    return md;
+  };
 
   return (
     <div className="min-h-screen pt-20 bg-[#020202] mesh-bg font-general">
@@ -149,7 +194,7 @@ export const Analytics: React.FC = () => {
         <div className="ml-auto flex items-center gap-3">
           {/* Metric toggle */}
           <div className="flex gap-1.5 bg-obsidian-200/50 p-1 rounded-xl border border-white/[0.04]">
-            {(['time', 'comparisons', 'swaps'] as Metric[]).map(m => (
+            {(['time', 'comparisons', 'swaps', 'memory'] as Metric[]).map(m => (
               <button key={m} onClick={() => setMetric(m)}
                 className="px-3.5 py-1.5 text-[10px] rounded-lg font-bold font-space uppercase transition-all duration-300"
                 style={{
@@ -157,7 +202,7 @@ export const Analytics: React.FC = () => {
                   border: `1px solid ${metric === m ? 'rgba(255,215,0,0.22)' : 'transparent'}`,
                   color: metric === m ? '#FFD700' : '#8E8E93',
                 }}>
-                {m === 'time' ? 'TIME (ms)' : m}
+                {m === 'time' ? 'TIME (ms)' : m === 'memory' ? 'MEMORY (KB)' : m}
               </button>
             ))}
           </div>
@@ -187,20 +232,34 @@ export const Analytics: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(() => {
                 const last = SIZES[SIZES.length - 1];
-                const fastest = ALGOS.reduce((best, id) => {
-                  const r = results.find(r => r.algoId === id && r.size === last);
-                  const br = results.find(r => r.algoId === best && r.size === last);
+                const completedAlgos = ALGOS.filter(id => results.some(r => r.algoId === id));
+                
+                const fastest = completedAlgos.reduce((best, id) => {
+                  const r = results.find(res => res.algoId === id && res.size === last);
+                  const br = results.find(res => res.algoId === best && res.size === last);
                   return r && br && r.time < br.time ? id : best;
-                }, ALGOS[0]);
-                const fewest = ALGOS.reduce((best, id) => {
-                  const r = results.find(r => r.algoId === id && r.size === last);
-                  const br = results.find(r => r.algoId === best && r.size === last);
+                }, completedAlgos[0] || ALGOS[0]);
+
+                const slowest = completedAlgos.reduce((worst, id) => {
+                  const r = results.find(res => res.algoId === id && res.size === last);
+                  const wr = results.find(res => res.algoId === worst && res.size === last);
+                  return r && wr && r.time > wr.time ? id : worst;
+                }, completedAlgos[0] || ALGOS[0]);
+
+                const fewComparisons = completedAlgos.reduce((best, id) => {
+                  const r = results.find(res => res.algoId === id && res.size === last);
+                  const br = results.find(res => res.algoId === best && res.size === last);
                   return r && br && r.comparisons < br.comparisons ? id : best;
-                }, ALGOS[0]);
+                }, completedAlgos[0] || ALGOS[0]);
+
+                const fastestRes = results.find(r => r.algoId === fastest && r.size === last);
+                const slowestRes = results.find(r => r.algoId === slowest && r.size === last);
+                const fewRes = results.find(r => r.algoId === fewComparisons && r.size === last);
+
                 return [
-                  { label: 'Fastest (1k)', val: algorithmMeta[fastest].name.replace(' Sort', ''), sub: `${results.find(r => r.algoId === fastest && r.size === last)?.time}ms` },
-                  { label: 'Fewest Comparisons', val: algorithmMeta[fewest].name.replace(' Sort', ''), sub: results.find(r => r.algoId === fewest && r.size === last)?.comparisons.toLocaleString() ?? '' },
-                  { label: 'Algorithms Tested', val: ALGOS.length.toString(), sub: 'fully benchmarked' },
+                  { label: `Fastest (n=${last})`, val: algorithmMeta[fastest].name.replace(' Sort', ''), sub: fastestRes ? `${fastestRes.time.toFixed(2)}ms` : 'N/A' },
+                  { label: `Slowest (n=${last})`, val: algorithmMeta[slowest].name.replace(' Sort', ''), sub: slowestRes ? `${slowestRes.time.toFixed(2)}ms` : 'N/A' },
+                  { label: 'Fewest Comparisons', val: algorithmMeta[fewComparisons].name.replace(' Sort', ''), sub: fewRes ? fewRes.comparisons.toLocaleString() : 'N/A' },
                   { label: 'Input Sizes', val: SIZES.length.toString(), sub: `${SIZES[0]} → ${SIZES[SIZES.length - 1]}` },
                 ].map(({ label, val, sub }) => (
                   <div key={label} className="p-5 rounded-2xl border border-white/[0.05] glass-ultra hover:border-gold-royal/30 transition-all duration-300">
@@ -223,7 +282,7 @@ export const Analytics: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Bar Chart at max n */}
               <div className="rounded-2xl border border-white/[0.05] p-5 glass-ultra" style={{ height: 300 }}>
-                <p className="text-[10px] text-white/30 uppercase tracking-widest font-space font-bold mb-4">Comparison at n={SIZES[SIZES.length - 1]}</p>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest font-space font-bold mb-4">Performance Comparison (n={SIZES[SIZES.length - 1]})</p>
                 <div style={{ height: 230 }}>
                   <Bar data={barData} options={chartOptions as any} />
                 </div>
@@ -231,22 +290,23 @@ export const Analytics: React.FC = () => {
 
               {/* Heatmap */}
               <div className="rounded-2xl border border-white/[0.05] p-5 glass-ultra">
-                <p className="text-[10px] text-white/30 uppercase tracking-widest font-space font-bold mb-4">Comparison Heatmap</p>
+                <p className="text-[10px] text-white/30 uppercase tracking-widest font-space font-bold mb-4">{metric.toUpperCase()} HEATMAP</p>
                 <div className="flex gap-2 mb-3">
                   <div className="w-28 shrink-0" />
                   {SIZES.map(s => (
                     <div key={s} className="flex-1 text-center text-[10px] text-white/35 font-space font-bold">{s}</div>
                   ))}
                 </div>
-                {ALGOS.map((id, i) => (
+                {ALGOS.map((id) => (
                   <div key={id} className="flex gap-2 mb-2 items-center">
                     <div className="w-28 text-[11px] text-white/50 font-satoshi font-bold shrink-0 truncate uppercase"
-                      style={{ color: COLORS[i] }}>{algorithmMeta[id].name.replace(' Sort', '')}</div>
+                      style={{ color: algorithmMeta[id].color }}>{algorithmMeta[id].name.replace(' Sort', '')}</div>
                     {SIZES.map(s => {
                       const r = results.find(r => r.algoId === id && r.size === s);
+                      const val = r?.[metric] ?? 0;
                       return (
                         <div key={s} className="flex-1">
-                          <HeatCell value={r?.comparisons ?? 0} max={heatMax} label={`${algorithmMeta[id].name} n=${s}: ${r?.comparisons?.toLocaleString() ?? 0} comparisons`} />
+                          <HeatCell value={val} max={heatMax} label={`${algorithmMeta[id].name} n=${s}: ${val.toLocaleString()} ${metric}`} />
                         </div>
                       );
                     })}
@@ -255,46 +315,134 @@ export const Analytics: React.FC = () => {
               </div>
             </div>
 
-            {/* Summary Table */}
-            <div className="rounded-2xl border border-white/[0.05] overflow-hidden glass-ultra">
-              <div className="px-5 py-4 border-b border-white/[0.04]">
-                <p className="text-sm font-bold text-white font-satoshi uppercase tracking-wider">Full Results — n={SIZES[SIZES.length - 1]}</p>
+            {/* Leaderboard & Markdown Report */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Leaderboard Table (2/3 width) */}
+              <div className="lg:col-span-2 rounded-2xl border border-white/[0.05] overflow-hidden glass-ultra">
+                <div className="px-5 py-4 border-b border-white/[0.04] flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em] font-space">Real-time Leaderboard</p>
+                    <h2 className="text-base font-bold text-white font-satoshi uppercase tracking-wider">Algorithm Ranking (n={SIZES[SIZES.length - 1]})</h2>
+                  </div>
+                  <span className="text-[10px] bg-gold-royal/10 border border-gold-royal/20 text-gold-royal font-black font-space px-2 py-0.5 rounded">
+                    SORTED BY SPEED
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-white/[0.04] bg-black/15">
+                        {['Rank', 'Algorithm', 'Time (ms)', 'Speed Factor', 'Comparisons', 'Swaps', 'Memory', 'Complexity', 'Stable'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left text-[10px] text-white/30 font-space font-black uppercase tracking-wider">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const lastSize = SIZES[SIZES.length - 1];
+                        const sorted = [...ALGOS].map(id => {
+                          const r = results.find(res => res.algoId === id && res.size === lastSize);
+                          return { id, time: r?.time ?? Infinity, r };
+                        }).sort((a, b) => a.time - b.time);
+
+                        const fastestTime = sorted[0]?.time || 1;
+
+                        return sorted.map((item, idx) => {
+                          const m = algorithmMeta[item.id];
+                          const r = item.r;
+                          const factor = r && r.time !== Infinity ? (r.time / fastestTime).toFixed(1) : 'N/A';
+                          
+                          let rankStyle = "bg-white/5 text-white/70";
+                          if (idx === 0) {
+                            rankStyle = "bg-amber-400/20 text-amber-300 border border-amber-400/30";
+                          } else if (idx === 1) {
+                            rankStyle = "bg-slate-300/20 text-slate-300 border border-slate-300/30";
+                          } else if (idx === 2) {
+                            rankStyle = "bg-amber-600/20 text-amber-500 border border-amber-600/30";
+                          }
+
+                          return (
+                            <tr key={item.id} className="border-b border-white/[0.03] hover:bg-white/[0.015] transition-colors">
+                              <td className="px-4 py-3.5">
+                                <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center font-space font-black text-[10px] ${rankStyle}`}>
+                                  {idx + 1}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3.5">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2.5 h-2.5 rounded-sm" style={{ background: m.color }} />
+                                  <span className="text-white font-bold font-satoshi uppercase tracking-wide">{m.name}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3.5 font-mono text-gold-royal font-black text-xs">
+                                {r ? `${r.time.toFixed(2)}` : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3.5 font-space font-bold">
+                                {idx === 0 ? (
+                                  <span className="text-emerald-400 text-[10px] bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded uppercase font-black">FASTEST</span>
+                                ) : r && r.time !== Infinity ? (
+                                  <span className="text-red-400 font-mono text-[10.5px]">{factor}x slower</span>
+                                ) : (
+                                  <span className="text-white/20">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3.5 font-mono text-white/80 font-medium">
+                                {r ? r.comparisons.toLocaleString() : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3.5 font-mono text-white/80 font-medium">
+                                {r ? r.swaps.toLocaleString() : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3.5 font-mono text-white/60">
+                                {r ? `${r.memory.toFixed(1)} KB` : 'N/A'}
+                              </td>
+                              <td className="px-4 py-3.5 font-space text-white/40 font-bold uppercase">
+                                {m.average}
+                              </td>
+                              <td className="px-4 py-3.5">
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-space font-black uppercase ${m.stable ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                  {m.stable ? 'Yes' : 'No'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-white/[0.04] bg-black/15">
-                      {['Algorithm', 'Time (ms)', 'Comparisons', 'Swaps', 'Avg Complexity', 'Stable'].map(h => (
-                        <th key={h} className="px-5 py-3.5 text-left text-[10px] text-white/30 font-space font-black uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ALGOS.map((id, i) => {
-                      const r = results.find(r => r.algoId === id && r.size === SIZES[SIZES.length - 1]);
-                      const m = algorithmMeta[id];
-                      return r ? (
-                        <tr key={id} className="border-b border-white/[0.03] hover:bg-white/[0.015] transition-colors">
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-sm" style={{ background: COLORS[i] }} />
-                              <span className="text-white font-bold font-satoshi uppercase tracking-wide">{m.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 font-mono text-gold-royal font-black text-sm">{r.time}</td>
-                          <td className="px-5 py-4 font-mono text-white/80 font-medium">{r.comparisons.toLocaleString()}</td>
-                          <td className="px-5 py-4 font-mono text-white/80 font-medium">{r.swaps.toLocaleString()}</td>
-                          <td className="px-5 py-4 font-space text-white/40 font-bold uppercase">{m.average}</td>
-                          <td className="px-5 py-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-space font-black uppercase ${m.stable ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                              {m.stable ? 'Yes' : 'No'}
-                            </span>
-                          </td>
-                        </tr>
-                      ) : null;
-                    })}
-                  </tbody>
-                </table>
+
+              {/* Benchmark Diagnostic Report (1/3 width) */}
+              <div className="rounded-2xl border border-white/[0.05] p-5 glass-ultra flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] text-blue-400 font-bold uppercase tracking-[0.2em] font-space">Laboratory output</p>
+                  <h2 className="text-base font-bold text-white font-satoshi uppercase tracking-wider mb-4">Diagnostics Report</h2>
+                  
+                  <div className="bg-black/45 rounded-xl border border-white/[0.04] p-3 text-[10px] font-mono text-white/60 h-80 overflow-y-auto whitespace-pre-wrap select-all scrollbar-thin">
+                    {generateMarkdownReport()}
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <button onClick={() => {
+                    navigator.clipboard.writeText(generateMarkdownReport());
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="w-full btn-primary py-2.5 rounded-xl text-xs font-black tracking-widest uppercase flex items-center justify-center gap-2">
+                    {copied ? (
+                      <>
+                        <Check size={13} className="text-emerald-400" />
+                        COPIED TO CLIPBOARD
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={13} />
+                        COPY MARKDOWN REPORT
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </>
