@@ -4,7 +4,7 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   BarElement, Tooltip, Legend, Filler,
 } from 'chart.js';
-import { algorithmMeta, algorithmRunners } from '../features/sorting/sortEngine';
+import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { AlgorithmId } from '../types/sorting';
 import { BarChart2, Loader2 } from 'lucide-react';
 
@@ -15,15 +15,6 @@ const ALGOS: AlgorithmId[] = ['bubble', 'insertion', 'selection', 'merge', 'quic
 const COLORS = ['#FFD700', '#FF9F0A', '#30D158', '#0A84FF', '#BF5AF2', '#FF453A', '#AEAEB2'];
 
 interface BenchResult { algoId: AlgorithmId; size: number; time: number; comparisons: number; swaps: number; }
-
-function bench(id: AlgorithmId, size: number): BenchResult {
-  const arr = Array.from({ length: size }, () => Math.floor(Math.random() * size) + 1);
-  const t0 = performance.now();
-  const frames = algorithmRunners[id]([...arr]);
-  const t1 = performance.now();
-  const last = frames[frames.length - 1];
-  return { algoId: id, size, time: +(t1 - t0).toFixed(3), comparisons: last.comparisons, swaps: last.swaps };
-}
 
 const chartOptions = {
   responsive: true,
@@ -89,7 +80,19 @@ export const Analytics: React.FC = () => {
     let done = 0;
     for (const id of ALGOS) {
       for (const s of SIZES) {
-        allResults.push(bench(id, s));
+        try {
+          const res = await fetch('/api/benchmark/single', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ algorithm: id, size: s })
+          });
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          const data = await res.json();
+          allResults.push(data);
+        } catch (err) {
+          console.error("Failed to run benchmark for", id, s, err);
+          allResults.push({ algoId: id, size: s, time: 0, comparisons: 0, swaps: 0 });
+        }
         done++;
         setProgress(Math.round((done / total) * 100));
         await new Promise(r => setTimeout(r, 1));

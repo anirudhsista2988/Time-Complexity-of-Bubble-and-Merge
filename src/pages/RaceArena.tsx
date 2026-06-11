@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { algorithmMeta, algorithmRunners } from '../features/sorting/sortEngine';
+import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { SortFrame, AlgorithmId } from '../types/sorting';
 import { Trophy, Activity } from 'lucide-react';
 import { genArray } from '../utils/array';
@@ -127,23 +127,40 @@ export const RaceArena: React.FC = () => {
     });
   };
 
-  const prepare = () => {
+  const [loading, setLoading] = useState(false);
+
+  const startRace = async () => {
+    setLoading(true);
+    setCommentary(['Requesting race telemetry from Python...']);
     const arr = genArr(size);
     const frames: Record<string, SortFrame[]> = {};
     const idx: Record<string, number> = {};
-    for (const id of selected) {
-      frames[id] = algorithmRunners[id]([...arr]);
-      idx[id] = 0;
-    }
-    setAllFrames(frames);
-    setIndices(idx);
-    setFinished([]);
-    setCommentary(['Algorithms loaded. Starting in 3...']);
-  };
 
-  const startRace = () => {
-    prepare();
-    setCountdown(true);
+    try {
+      const promises = Array.from(selected).map(async (id) => {
+        const res = await fetch('/api/sort', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ algorithm: id, array: arr }),
+        });
+        if (!res.ok) throw new Error(`Failed to fetch ${id} frames`);
+        const data = await res.json();
+        frames[id] = data;
+        idx[id] = 0;
+      });
+      await Promise.all(promises);
+
+      setAllFrames(frames);
+      setIndices(idx);
+      setFinished([]);
+      setCountdown(true);
+      setCommentary(['Algorithms loaded. Starting in 3...']);
+    } catch (err) {
+      console.error("Failed to fetch race frames:", err);
+      setCommentary(['Error loading algorithms. Please try again.']);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onCountdownDone = () => {
@@ -251,8 +268,8 @@ export const RaceArena: React.FC = () => {
           
           {running
             ? <button onClick={stopRace} className="px-5 py-2.5 rounded-full text-xs font-black tracking-widest bg-red-500/10 border border-red-500/22 text-red-400 hover:bg-red-500/20 transition-all font-space uppercase">STOP</button>
-            : <button onClick={startRace} className="btn-primary px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase">
-                {Object.keys(allFrames).length ? '🏁 RESTART' : '🏁 START RACE'}
+            : <button onClick={startRace} disabled={loading} className="btn-primary px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase disabled:opacity-60 disabled:cursor-not-allowed">
+                {loading ? '🏁 PREPARING...' : Object.keys(allFrames).length ? '🏁 RESTART' : '🏁 START RACE'}
               </button>
           }
         </div>

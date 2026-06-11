@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSortPlayer } from '../hooks/useSortPlayer';
-import { algorithmMeta, algorithmRunners } from '../features/sorting/sortEngine';
+import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { SortFrame, AlgorithmId } from '../types/sorting';
 import { Pause, Play, RefreshCcw, Shuffle, SkipBack, SkipForward } from 'lucide-react';
 import { genArray } from '../utils/array';
@@ -393,9 +393,29 @@ export const SortLab: React.FC = () => {
   const [aiExplain, setAiExplain] = useState(true);
   const [showPseudo, setShowPseudo] = useState(true);
 
-  const frames = useMemo(() => {
-    if (!initArr.length) return [];
-    return algorithmRunners[algoId]([...initArr]);
+  const [frames, setFrames] = useState<SortFrame[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!initArr.length) return;
+    setLoading(true);
+    fetch('/api/sort', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ algorithm: algoId, array: initArr }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        setFrames(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch sort frames:', err);
+        setLoading(false);
+      });
   }, [algoId, initArr]);
 
   const { frame, idx, total, playing, speed, setSpeed, play, pause, stepFwd, stepBwd, reset } = useSortPlayer(frames, 60);
@@ -457,7 +477,12 @@ export const SortLab: React.FC = () => {
           {/* Canvas Container */}
           <div className="flex-1 rounded-2xl overflow-hidden relative min-h-[220px] border border-white/[0.05] glass-ultra">
             <div className="absolute inset-0">
-              {frame ? (
+              {loading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/30 text-sm font-satoshi">
+                  <div className="w-8 h-8 rounded-full border-2 border-gold-royal/20 border-t-[#FFD700] animate-spin" />
+                  <span className="text-[11px] uppercase tracking-widest font-space text-[#FFD700]/70">Fetching Sort Telemetry...</span>
+                </div>
+              ) : frame ? (
                 <AnimatePresence mode="wait">
                   <motion.div key={visMode} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-5">
                     {visMode === 'bars'       && <BarsMode frame={frame} />}
