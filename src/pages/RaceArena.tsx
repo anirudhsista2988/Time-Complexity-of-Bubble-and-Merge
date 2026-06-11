@@ -131,13 +131,16 @@ const Speedometer: React.FC<{ pct: number; color: string }> = ({ pct, color }) =
   );
 };
 
-const MiniBars: React.FC<{ frame: SortFrame | null; color: string }> = ({ frame, color }) => {
-  if (!frame) return <div className="w-full h-full flex items-center justify-center text-white/20 text-xs">READY</div>;
-  const max = Math.max(...frame.array, 100);
+const MiniBars: React.FC<{ frame: SortFrame | null; initialArray?: number[] | null; color: string }> = ({ frame, initialArray, color }) => {
+  const arrayToRender = frame ? frame.array : initialArray;
+  if (!arrayToRender || arrayToRender.length === 0) {
+    return <div className="w-full h-full flex items-center justify-center text-white/20 text-[9px] font-space font-black uppercase tracking-widest">READY</div>;
+  }
+  const max = Math.max(...arrayToRender, 100);
   return (
     <div className="flex items-end h-full gap-px w-full">
-      {frame.array.map((v, i) => {
-        const s = frame.states[i];
+      {arrayToRender.map((v, i) => {
+        const s = frame ? frame.states[i] : 'default';
         const bg = s === 'sorted' ? '#00FF88' : s === 'swap' ? '#FFB800' : s === 'compare' ? '#FF4444' : color;
         return <div key={i} className="flex-1 rounded-t-sm transition-all duration-50" style={{ height: `${(v / max) * 100}%`, background: bg }} />;
       })}
@@ -190,6 +193,9 @@ const CountdownOverlay: React.FC<{ onDone: () => void }> = ({ onDone }) => {
 export const RaceArena: React.FC = () => {
   const [selected, setSelected] = useState<Set<AlgorithmId>>(new Set(['bubble', 'merge', 'quick', 'heap']));
   const [size, setSize] = useState(70);
+  const [currentArr, setCurrentArr] = useState<number[]>(() => genArray(70));
+  const [customInput, setCustomInput] = useState('');
+  const [inputError, setInputError] = useState<string | null>(null);
   const [allFrames, setAllFrames] = useState<Record<string, SortFrame[]>>({});
   const [indices, setIndices] = useState<Record<string, number>>({});
   const [running, setRunning] = useState(false);
@@ -209,6 +215,54 @@ export const RaceArena: React.FC = () => {
       else if (n.size < 6) n.add(id);
       return n;
     });
+    setAllFrames({});
+    setRaceResults([]);
+  };
+
+  const handleSizeChange = (newSize: number) => {
+    setSize(newSize);
+    setAllFrames({});
+    setRaceResults([]);
+    setCurrentArr(genArray(newSize));
+  };
+
+  const handleLoadCustomArray = () => {
+    setInputError(null);
+    if (!customInput.trim()) {
+      setInputError('Please enter some numbers.');
+      return;
+    }
+    const parts = customInput.split(',');
+    const parsed: number[] = [];
+    for (let part of parts) {
+      const trimmed = part.trim();
+      if (trimmed === '') continue;
+      const num = Number(trimmed);
+      if (isNaN(num)) {
+        setInputError(`Invalid value: "${trimmed}". Only numbers are allowed.`);
+        return;
+      }
+      if (num < 1 || num > 1000) {
+        setInputError(`Number "${trimmed}" must be between 1 and 1000 for proper visualization.`);
+        return;
+      }
+      parsed.push(Math.round(num));
+    }
+
+    if (parsed.length < 2) {
+      setInputError('Array must contain at least 2 numbers.');
+      return;
+    }
+    if (parsed.length > 500) {
+      setInputError('Array size cannot exceed 500 elements.');
+      return;
+    }
+
+    stopRace();
+    setSize(parsed.length);
+    setCurrentArr(parsed);
+    setAllFrames({});
+    setRaceResults([]);
   };
 
   const [loading, setLoading] = useState(false);
@@ -218,7 +272,7 @@ export const RaceArena: React.FC = () => {
     setCommentary(['Requesting race telemetry from Python...']);
     setRaceResults([]);
     commentedMilestones.current = {};
-    const arr = genArray(size);
+    const arr = currentArr;
     const frames: Record<string, SortFrame[]> = {};
     const idx: Record<string, number> = {};
 
@@ -343,9 +397,16 @@ export const RaceArena: React.FC = () => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [running, speed, allFrames, finished, raceResults]);
 
+  const raceCompleted = useMemo(() => {
+    return !running && Object.keys(allFrames).length > 0 && Object.keys(indices).every(id => {
+      const fList = allFrames[id];
+      const idx = indices[id];
+      return fList && idx >= fList.length - 1;
+    });
+  }, [running, allFrames, indices]);
+
   // Sort rankings: during active race sort by progress %; when finished, sort strictly by actual executionTime
   const rankings = useMemo(() => {
-    const raceCompleted = !running && finished.length === selected.size && finished.length > 0;
     if (raceCompleted && raceResults.length === selected.size) {
       return [...raceResults]
         .sort((a, b) => a.executionTime - b.executionTime)
@@ -363,10 +424,18 @@ export const RaceArena: React.FC = () => {
       }
       return pb - pa;
     });
-  }, [indices, allFrames, selected, running, finished, raceResults]);
+  }, [indices, allFrames, selected, running, raceCompleted, raceResults]);
 
-  const raceCompleted = !running && finished.length === selected.size && finished.length > 0;
-  const winner = raceCompleted && rankings.length > 0 ? rankings[0] : null;
+  const winnerInfo = useMemo(() => {
+    if (!raceCompleted || raceResults.length === 0) return null;
+    const minTime = Math.min(...raceResults.map(r => r.executionTime));
+    const winners = raceResults.filter(r => r.executionTime === minTime).map(r => r.algoId);
+    return {
+      winners,
+      isTie: winners.length > 1,
+      minTime
+    };
+  }, [raceCompleted, raceResults]);
 
   // Chart data for final statistics
   const chartData = {
@@ -428,7 +497,7 @@ export const RaceArena: React.FC = () => {
           
           <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/[0.04] bg-obsidian-200/50 text-[10px] font-space font-bold text-white/40 uppercase">
             Size: {size}
-            <input type="range" min={20} max={120} value={size} onChange={e => setSize(+e.target.value)}
+            <input type="range" min={Math.min(20, size)} max={Math.max(120, size)} value={size} onChange={e => handleSizeChange(+e.target.value)}
               className="w-16 h-[2px] bg-white/10 rounded-lg appearance-none cursor-pointer accent-gold-royal" />
           </div>
           
@@ -442,33 +511,79 @@ export const RaceArena: React.FC = () => {
       </div>
 
       <div className="p-6 space-y-6 max-w-screen-xl mx-auto relative z-10">
+        {/* Custom Array Input */}
+        <div className="rounded-2xl p-5 border border-white/[0.05] glass-ultra">
+          <p className="text-[10px] text-white/35 font-black uppercase tracking-wider font-space mb-2">Custom Array Input</p>
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="e.g. 45, 12, 89, 23, 7, 56, 34"
+                value={customInput}
+                onChange={e => {
+                  setCustomInput(e.target.value);
+                  if (inputError) setInputError(null);
+                }}
+                className="w-full px-4 py-2 bg-obsidian-200/50 border border-white/[0.08] rounded-xl text-xs font-mono text-white placeholder-white/20 focus:outline-none focus:border-[#FFD700]/50 transition-all"
+              />
+              {inputError && (
+                <p className="text-[10px] text-red-400 mt-1 font-space uppercase font-bold">{inputError}</p>
+              )}
+            </div>
+            <button
+              onClick={handleLoadCustomArray}
+              className="px-5 py-2 bg-[rgba(255,215,0,0.08)] border border-[rgba(255,215,0,0.22)] rounded-xl text-xs font-black font-space text-[#FFD700] hover:bg-[rgba(255,215,0,0.15)] transition-all uppercase shrink-0"
+            >
+              Load Array
+            </button>
+          </div>
+        </div>
+
         {/* Winner Banner */}
         <AnimatePresence>
-          {winner && (
+          {raceCompleted && winnerInfo && (
             <motion.div
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="rounded-2xl p-6 flex items-center gap-6 border glass-ultra"
               style={{
-                background: `linear-gradient(135deg, ${algorithmMeta[winner].color}08, rgba(6,6,6,0.85))`,
-                borderColor: `${algorithmMeta[winner].color}45`,
-                boxShadow: `0 0 40px ${algorithmMeta[winner].color}15`,
+                background: winnerInfo.isTie
+                  ? `linear-gradient(135deg, rgba(59,130,246,0.08), rgba(6,6,6,0.85))`
+                  : `linear-gradient(135deg, ${algorithmMeta[winnerInfo.winners[0]].color}08, rgba(6,6,6,0.85))`,
+                borderColor: winnerInfo.isTie
+                  ? `rgba(59,130,246,0.45)`
+                  : `${algorithmMeta[winnerInfo.winners[0]].color}45`,
+                boxShadow: winnerInfo.isTie
+                  ? `0 0 40px rgba(59,130,246,0.15)`
+                  : `0 0 40px ${algorithmMeta[winnerInfo.winners[0]].color}15`,
               }}
             >
               <div className="text-5xl">🏆</div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-widest font-space mb-1">Race Winner</p>
-                <h2 className="text-3xl font-black font-satoshi" style={{ color: algorithmMeta[winner].color }}>{algorithmMeta[winner].name.toUpperCase()}</h2>
+                <p className="text-white/50 text-xs uppercase tracking-widest font-space mb-1">
+                  {winnerInfo.isTie ? 'Race Tie' : 'Race Winner'}
+                </p>
+                <h2 className="text-3xl font-black font-satoshi">
+                  {winnerInfo.isTie
+                    ? 'IT\'S A TIE!'
+                    : algorithmMeta[winnerInfo.winners[0]].name.toUpperCase()}
+                </h2>
                 <p className="text-white/40 text-sm mt-1.5 font-general">
-                  {raceResults.find(r => r.algoId === winner)?.executionTime.toFixed(3)} ms ·{' '}
-                  {raceResults.find(r => r.algoId === winner)?.comparisons.toLocaleString()} comparisons ·{' '}
-                  {raceResults.find(r => r.algoId === winner)?.swaps.toLocaleString()} swaps
+                  {winnerInfo.isTie ? (
+                    `Tied algorithms finished in ${winnerInfo.minTime.toFixed(3)} ms`
+                  ) : (
+                    `${raceResults.find(r => r.algoId === winnerInfo.winners[0])?.executionTime.toFixed(3)} ms · ${raceResults.find(r => r.algoId === winnerInfo.winners[0])?.comparisons.toLocaleString()} comparisons · ${raceResults.find(r => r.algoId === winnerInfo.winners[0])?.swaps.toLocaleString()} swaps`
+                  )}
                 </p>
               </div>
               <div className="ml-auto text-right">
-                <p className="text-[#FFD700] font-black text-4xl font-space">P1</p>
-                <p className="text-white/30 text-xs font-space uppercase">Grand Prix Winner</p>
+                <p className="text-[#FFD700] font-black text-4xl font-space">
+                  {winnerInfo.isTie ? 'TIE' : 'P1'}
+                </p>
+                <p className="text-white/30 text-xs font-space uppercase">
+                  {winnerInfo.isTie ? 'No single winner' : 'Grand Prix Winner'}
+                </p>
               </div>
             </motion.div>
           )}
@@ -476,14 +591,16 @@ export const RaceArena: React.FC = () => {
 
         {/* Race Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rankings.map((id, rank) => {
+          {Array.from(selected).map((id) => {
+            const rank = rankings.indexOf(id);
             const m = algorithmMeta[id];
             const color = algorithmMeta[id].color;
             const frames = allFrames[id] ?? [];
             const fi = indices[id] ?? 0;
             const frame = frames[fi] ?? null;
             const pct = frames.length > 1 ? (fi / (frames.length - 1)) * 100 : 0;
-            const isWinner = rank === 0 && raceCompleted;
+            const isWinner = raceCompleted && winnerInfo && winnerInfo.winners.includes(id);
+            const isTie = winnerInfo?.isTie;
 
             return (
               <motion.div key={id}
@@ -502,7 +619,12 @@ export const RaceArena: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-sm" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-                      <p className="font-bold text-white text-base font-satoshi uppercase tracking-wide">{m.name}</p>
+                      <p className="font-bold text-white text-base font-satoshi uppercase tracking-wide truncate">{m.name}</p>
+                      {isWinner && (
+                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest font-space shrink-0 ${isTie ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : 'bg-green-500/10 border border-green-500/30 text-green-400'}`}>
+                          {isTie ? 'Tie' : 'Winner'}
+                        </span>
+                      )}
                     </div>
                     <p className="text-[10px] font-space mt-1 uppercase font-bold" style={{ color: `${color}cc` }}>{m.average}</p>
                   </div>
@@ -521,7 +643,7 @@ export const RaceArena: React.FC = () => {
 
                 {/* Mini visualizer */}
                 <div className="h-20 overflow-hidden p-3 pt-2.5 bg-black/35">
-                  <MiniBars frame={frame} color={color} />
+                  <MiniBars frame={frame} initialArray={currentArr} color={color} />
                 </div>
 
                 <div className="px-5 py-2.5 flex justify-between text-[10px] text-white/30 border-t border-white/[0.03] font-space uppercase font-bold">
@@ -532,6 +654,129 @@ export const RaceArena: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Race Summary Panel */}
+        {raceCompleted && raceResults.length === selected.size && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="rounded-2xl border p-6 glass-ultra relative overflow-hidden"
+            style={{ borderColor: 'rgba(255,215,0,0.12)' }}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-radial-gradient from-[rgba(255,215,0,0.03)] to-transparent pointer-events-none" />
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[rgba(255,215,0,0.22)] bg-[rgba(255,215,0,0.06)]">
+                <Trophy size={18} className="text-[#FFD700]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white font-clash leading-none">RACE SUMMARY</h2>
+                <p className="text-[10px] text-white/30 font-space uppercase">Official Benchmarking Report</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider font-space font-bold mb-1.5 block">Original Array</span>
+                <div className="p-3.5 rounded-xl border border-white/[0.04] bg-black/30 text-xs font-mono text-white/70 break-all max-h-24 overflow-y-auto no-scrollbar">
+                  [{currentArr.join(', ')}]
+                </div>
+              </div>
+              <div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider font-space font-bold mb-1.5 block">Sorted Output</span>
+                <div className="p-3.5 rounded-xl border border-white/[0.04] bg-black/30 text-xs font-mono text-[#30D158] break-all max-h-24 overflow-y-auto no-scrollbar">
+                  [{(() => {
+                    const firstAlgoId = raceResults[0]?.algoId;
+                    const frames = allFrames[firstAlgoId];
+                    return frames ? frames[frames.length - 1]?.array.join(', ') : '';
+                  })()}]
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl border border-white/[0.05] bg-white/[0.02] flex items-center justify-between flex-wrap gap-4 mb-6">
+              <div>
+                <span className="text-[10px] text-white/40 uppercase tracking-wider font-space font-bold block mb-1">Winner</span>
+                <div className="flex items-center gap-2">
+                  {winnerInfo?.isTie ? (
+                    <>
+                      <span className="text-xl">🏆</span>
+                      <span className="text-lg font-black text-blue-400 font-space uppercase">🏆 TIE</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xl">🏆</span>
+                      <span className="text-lg font-black font-satoshi uppercase" style={{ color: winnerInfo ? algorithmMeta[winnerInfo.winners[0]].color : undefined }}>
+                        {winnerInfo ? algorithmMeta[winnerInfo.winners[0]].name : ''}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-6">
+                {raceResults.map(r => {
+                  const m = algorithmMeta[r.algoId];
+                  const isWinning = winnerInfo?.winners.includes(r.algoId);
+                  return (
+                    <div key={r.algoId} className="text-right">
+                      <span className="text-[9px] text-white/30 uppercase tracking-wider font-space font-bold block" style={{ color: isWinning ? m.color : undefined }}>
+                        {m.name.replace(' Sort', '')}
+                      </span>
+                      <span className="text-sm font-black font-mono text-white mt-0.5 block">{r.executionTime.toFixed(1)} ms</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-4 rounded-xl border border-white/[0.04] bg-black/10">
+                <span className="text-[10px] text-[#FFD700] font-bold uppercase tracking-wider font-space block mb-3">Execution Times</span>
+                <div className="space-y-2.5">
+                  {raceResults.map(r => {
+                    const m = algorithmMeta[r.algoId];
+                    return (
+                      <div key={r.algoId} className="flex justify-between items-center text-xs">
+                        <span className="text-white/60 font-semibold">{m.name}</span>
+                        <span className="font-mono text-gold-royal font-black">{r.executionTime.toFixed(2)} ms</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-white/[0.04] bg-black/10">
+                <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider font-space block mb-3">Comparisons</span>
+                <div className="space-y-2.5">
+                  {raceResults.map(r => {
+                    const m = algorithmMeta[r.algoId];
+                    return (
+                      <div key={r.algoId} className="flex justify-between items-center text-xs">
+                        <span className="text-white/60 font-semibold">{m.name}</span>
+                        <span className="font-mono text-white font-black">{r.comparisons.toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-white/[0.04] bg-black/10">
+                <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider font-space block mb-3">Swaps</span>
+                <div className="space-y-2.5">
+                  {raceResults.map(r => {
+                    const m = algorithmMeta[r.algoId];
+                    return (
+                      <div key={r.algoId} className="flex justify-between items-center text-xs">
+                        <span className="text-white/60 font-semibold">{m.name}</span>
+                        <span className="font-mono text-white font-black">{r.swaps.toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Podium and Final Stats */}
         {raceCompleted && raceResults.length === selected.size && (

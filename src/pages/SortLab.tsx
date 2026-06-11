@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSortPlayer } from '../hooks/useSortPlayer';
 import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { SortFrame, AlgorithmId } from '../types/sorting';
-import { Pause, Play, RefreshCcw, Shuffle, SkipBack, SkipForward } from 'lucide-react';
+import { Pause, Play, RefreshCcw, Shuffle, SkipBack, SkipForward, Trophy } from 'lucide-react';
 import { genArray } from '../utils/array';
 
 type VisMode = 'bars' | 'skyline' | 'circular' | 'particle' | 'matrix' | 'isometric';
@@ -396,6 +396,9 @@ export const SortLab: React.FC = () => {
   const [frames, setFrames] = useState<SortFrame[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [customInput, setCustomInput] = useState('');
+  const [inputError, setInputError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!initArr.length) return;
     setLoading(true);
@@ -421,6 +424,43 @@ export const SortLab: React.FC = () => {
   const { frame, idx, total, playing, speed, setSpeed, play, pause, stepFwd, stepBwd, reset } = useSortPlayer(frames, 60);
   const meta = algorithmMeta[algoId];
   const progress = total > 1 ? (idx / (total - 1)) * 100 : 0;
+
+  const handleLoadCustomArray = () => {
+    setInputError(null);
+    if (!customInput.trim()) {
+      setInputError('Please enter some numbers.');
+      return;
+    }
+    const parts = customInput.split(',');
+    const parsed: number[] = [];
+    for (let part of parts) {
+      const trimmed = part.trim();
+      if (trimmed === '') continue;
+      const num = Number(trimmed);
+      if (isNaN(num)) {
+        setInputError(`Invalid value: "${trimmed}". Only numbers are allowed.`);
+        return;
+      }
+      if (num < 1 || num > 1000) {
+        setInputError(`Number "${trimmed}" must be between 1 and 1000 for proper visualization.`);
+        return;
+      }
+      parsed.push(Math.round(num));
+    }
+
+    if (parsed.length < 2) {
+      setInputError('Array must contain at least 2 numbers.');
+      return;
+    }
+    if (parsed.length > 500) {
+      setInputError('Array size cannot exceed 500 elements.');
+      return;
+    }
+
+    reset();
+    setSize(parsed.length);
+    setInitArr(parsed);
+  };
 
   const shuffle = () => { reset(); setInitArr(genArray(size)); };
   const changeSize = (s: number) => { setSize(s); reset(); setInitArr(genArray(s)); };
@@ -518,6 +558,89 @@ export const SortLab: React.FC = () => {
             </div>
           )}
 
+          {/* Sorting Results Card */}
+          <AnimatePresence>
+            {idx === total - 1 && total > 1 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: 10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: 10 }}
+                className="shrink-0 rounded-2xl p-5 border glass-ultra overflow-hidden"
+                style={{ borderColor: `${meta.color}35`, background: 'rgba(255,255,255,0.01)' }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center border" style={{ borderColor: `${meta.color}45`, backgroundColor: `${meta.color}10` }}>
+                    <Trophy size={14} style={{ color: meta.color }} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white font-satoshi uppercase tracking-wider">Sorting Results</h3>
+                    <p className="text-[10px] text-white/30 font-space uppercase">Diagnostics Summary</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <span className="text-[10px] text-white/44 uppercase tracking-wider font-space font-bold mb-1.5 block">Original Array</span>
+                    <div className="p-3 rounded-xl border border-white/[0.04] bg-black/20 text-xs font-mono text-white/70 break-all max-h-24 overflow-y-auto no-scrollbar">
+                      [{initArr.join(', ')}]
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-white/44 uppercase tracking-wider font-space font-bold mb-1.5 block">Sorted Array</span>
+                    <div className="p-3 rounded-xl border border-white/[0.04] bg-black/20 text-xs font-mono text-[#30D158] break-all max-h-24 overflow-y-auto no-scrollbar">
+                      [{frame?.array.join(', ')}]
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {[
+                    { l: 'Comparisons', v: frame?.comparisons.toLocaleString(), c: '#FF453A' },
+                    { l: 'Swaps', v: frame?.swaps.toLocaleString(), c: '#FF9F0A' },
+                    { l: 'Execution Time', v: `${frame?.executionTime?.toFixed(2) ?? '0.00'} ms`, c: '#FFD700' },
+                    { l: 'Time Complexity', v: meta.average, c: '#BF5AF2' },
+                    { l: 'Space Complexity', v: meta.space, c: '#5AC8FA' }
+                  ].map(({ l, v, c }) => (
+                    <div key={l} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                      <p className="text-[9px] text-white/40 uppercase tracking-wider font-space font-bold">{l}</p>
+                      <p className="text-base font-black font-space mt-1 truncate" style={{ color: c }}>{v}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Custom Array Input */}
+          <div className="shrink-0 rounded-2xl p-4 border border-white/[0.05] glass-ultra">
+            <span className="text-[10px] text-white/35 font-black uppercase tracking-wider font-space block mb-2">
+              Custom Array Input
+            </span>
+            <div className="flex gap-3 items-start">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="e.g. 45, 12, 89, 23, 7, 56, 34"
+                  value={customInput}
+                  onChange={e => {
+                    setCustomInput(e.target.value);
+                    if (inputError) setInputError(null);
+                  }}
+                  className="w-full px-4 py-2 bg-obsidian-200/50 border border-white/[0.08] rounded-xl text-xs font-mono text-white placeholder-white/20 focus:outline-none focus:border-[#FFD700]/50 transition-all"
+                />
+                {inputError && (
+                  <p className="text-[10px] text-red-400 mt-1 font-space uppercase font-bold">{inputError}</p>
+                )}
+              </div>
+              <button
+                onClick={handleLoadCustomArray}
+                className="px-5 py-2 bg-[rgba(255,215,0,0.08)] border border-[rgba(255,215,0,0.22)] rounded-xl text-xs font-black font-space text-[#FFD700] hover:bg-[rgba(255,215,0,0.15)] transition-all uppercase shrink-0"
+              >
+                Load Array
+              </button>
+            </div>
+          </div>
+
           {/* Controls */}
           <div className="shrink-0 rounded-2xl p-4 border border-white/[0.05] glass-ultra">
             <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -556,7 +679,7 @@ export const SortLab: React.FC = () => {
                     <span>Array Size</span>
                     <span className="text-white/60 font-mono">{size}</span>
                   </span>
-                  <input type="range" min={8} max={100} value={size} onChange={e => changeSize(+e.target.value)} className="w-full h-[2px] bg-white/10 rounded-lg appearance-none cursor-pointer accent-gold-royal" />
+                  <input type="range" min={Math.min(8, size)} max={Math.max(100, size)} value={size} onChange={e => changeSize(+e.target.value)} className="w-full h-[2px] bg-white/10 rounded-lg appearance-none cursor-pointer accent-gold-royal" />
                 </div>
               </div>
 
