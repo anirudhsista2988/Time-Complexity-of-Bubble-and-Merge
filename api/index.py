@@ -70,7 +70,14 @@ def get_sort_frames(req: SortRequest):
     if algo not in runners:
         raise HTTPException(status_code=400, detail="Invalid algorithm ID")
     try:
+        t0 = time.perf_counter()
         frames = runners[algo](req.array)
+        t1 = time.perf_counter()
+        time_ms = float(f"{(t1 - t0) * 1000:.3f}")
+        
+        for f in frames:
+            f["executionTime"] = time_ms
+            
         return frames
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -8,6 +8,7 @@ export interface SortFrame {
   description: string;
   pass?: number;
   activeLine?: number;
+  executionTime?: number;
 }
 
 export type AlgorithmId = 'bubble' | 'selection' | 'insertion' | 'merge' | 'quick' | 'heap' | 'counting' | 'radix' | 'bucket' | 'shell';
