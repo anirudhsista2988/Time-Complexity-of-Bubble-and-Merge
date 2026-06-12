@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
+import { LuxuryParticleSystem } from './components/LuxuryParticleSystem';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { SortLab } from './pages/SortLab';
@@ -40,18 +42,34 @@ function AppRoutes() {
   );
 }
 
-export default function App() {
+function AppInner() {
+  const { isDark } = useTheme();
+
   return (
     <BrowserRouter>
-      {/* Global ambient background — shows on non-home pages */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* ── Global luxury particle field (behind everything) ── */}
+      <LuxuryParticleSystem isDark={isDark} />
+
+      {/* ── Ambient gradient blooms (static, layer above particles) ── */}
+      <div className="fixed inset-0 z-[1] pointer-events-none" aria-hidden="true">
         <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 80% 60% at 10% 0%, rgba(255,215,0,0.04) 0%, transparent 60%)' }} />
+          style={{ background: 'radial-gradient(ellipse 80% 60% at 10% 0%, rgba(255,215,0,0.035) 0%, transparent 60%)' }} />
         <div className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 60% 50% at 90% 100%, rgba(255,140,0,0.03) 0%, transparent 60%)' }} />
+          style={{ background: 'radial-gradient(ellipse 60% 50% at 90% 100%, rgba(255,140,0,0.025) 0%, transparent 60%)' }} />
+        <div className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,215,0,0.015) 0%, transparent 70%)' }} />
       </div>
+
       <Navbar />
       <AppRoutes />
     </BrowserRouter>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }
