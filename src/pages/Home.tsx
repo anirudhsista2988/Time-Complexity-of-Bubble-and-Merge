@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GlassSculptureCanvas } from '../components/GlassSculptureCanvas';
+import { HeroSequence } from '../components/HeroSequence';
 import { 
   ArrowRight, Beaker, Trophy, 
   GitCompare, Play, Sparkles, ChevronRight
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
+  const [sequenceComplete, setSequenceComplete] = useState(false);
+
   return (
-    <div className="min-h-screen bg-transparent text-gray-200 font-general relative selection:bg-gold-royal/20 selection:text-[#FFD700]">
+    <div className="bg-transparent text-gray-200 font-general relative selection:bg-gold-royal/20 selection:text-[#FFD700]">
+
+      {/* ──── SCROLL-DRIVEN HERO SEQUENCE ───────────────────────── */}
+      <HeroSequence onComplete={() => setSequenceComplete(true)} />
+
+      {/* ──── HOMEPAGE HERO — revealed after sequence ──────────── */}
+      <AnimatePresence>
+        {sequenceComplete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+
       {/* ──── HERO SECTION (FIRST FOLD) ──────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-6 md:px-12 max-w-screen-2xl mx-auto overflow-hidden">
         
@@ -321,6 +337,9 @@ export const Home: React.FC = () => {
           </p>
         </div>
       </footer>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
