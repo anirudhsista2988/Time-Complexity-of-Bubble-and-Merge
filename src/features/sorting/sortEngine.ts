@@ -110,6 +110,9 @@ export function runInsertionSort(input: number[]): SortFrame[] {
       push(s, `Moving ${arr[j+1]} right to make room for ${key}`, 3, i);
     }
     arr[j + 1] = key;
+    const sPost = makeStates(n);
+    for (let k = 0; k <= i; k++) sPost[k] = 'sorted';
+    push(sPost, `Inserted key ${key} at position ${j + 1}`, 6, i);
   }
   push(makeStates(n, 'sorted'), 'Array fully sorted! ✓', 6);
   return frames;
@@ -140,8 +143,18 @@ export function runMergeSort(input: number[]): SortFrame[] {
       for (let x = l; x <= k - 1; x++) s2[x] = 'merge';
       push(s2, `Placed ${arr[k-1]} at position ${k-1}`, 5);
     }
-    while (i < left.length) { arr[k++] = left[i++]; }
-    while (j < right.length) { arr[k++] = right[j++]; }
+    while (i < left.length) {
+      arr[k++] = left[i++];
+      const s2 = makeStates(n);
+      for (let x = l; x <= k - 1; x++) s2[x] = 'merge';
+      push(s2, `Placed remaining left element ${arr[k-1]} at position ${k-1}`, 5);
+    }
+    while (j < right.length) {
+      arr[k++] = right[j++];
+      const s2 = makeStates(n);
+      for (let x = l; x <= k - 1; x++) s2[x] = 'merge';
+      push(s2, `Placed remaining right element ${arr[k-1]} at position ${k-1}`, 5);
+    }
     const s = makeStates(n);
     for (let x = l; x <= r; x++) s[x] = 'sorted';
     push(s, `Subarray [${l}..${r}] merged`, 5);

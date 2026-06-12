@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { AmbientCanvas } from '../components/AmbientCanvas';
 import { GlassSculptureCanvas } from '../components/GlassSculptureCanvas';
 import { 
-  ArrowRight, Beaker, Trophy, BarChart2, Code2, 
+  ArrowRight, Beaker, Trophy, 
   GitCompare, Play, Sparkles, ChevronRight
 } from 'lucide-react';
 
@@ -56,7 +56,7 @@ export const Home: React.FC = () => {
               transition={{ delay: 0.3, duration: 0.7 }}
               className="text-gray-400 text-base md:text-lg font-light leading-relaxed mb-10 font-satoshi max-w-lg"
             >
-              Visualize, compare, benchmark and master sorting algorithms through immersive interactive experiences. Engineered for depth, speed, and precision.
+              Visualize, compare, and master sorting algorithms through immersive interactive experiences. Engineered for depth, speed, and precision.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -122,7 +122,7 @@ export const Home: React.FC = () => {
 
         {/* Showcase 1: Sort Lab */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 flex flex-col text-left justify-center Order-2 lg:order-1">
+          <div className="lg:col-span-5 flex flex-col text-left justify-center order-2 lg:order-1">
             <div className="w-10 h-10 rounded-xl bg-gold-royal/5 border border-gold-royal/15 flex items-center justify-center mb-6">
               <Beaker size={18} className="text-[#FFD700]" />
             </div>
@@ -138,7 +138,7 @@ export const Home: React.FC = () => {
               Explore Sort Lab <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="lg:col-span-7 Order-1 lg:order-2">
+          <div className="lg:col-span-7 order-1 lg:order-2">
             <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-6 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-royal/20 to-transparent" />
               {/* Mock visualization mockup */}
@@ -152,7 +152,7 @@ export const Home: React.FC = () => {
                         style={{ 
                           height: `${h}%`, 
                           background: isActive 
-                            ? 'linear-gradient(to top, #FF453A, #FF9500)' 
+                             ? 'linear-gradient(to top, #FF453A, #FF9500)' 
                             : 'linear-gradient(to top, rgba(255,215,0,0.05), rgba(255,215,0,0.35))',
                           boxShadow: isActive ? '0 0 15px rgba(255,69,58,0.4)' : 'none'
                         }} 
@@ -218,45 +218,25 @@ export const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Showcase 3: Analytics */}
+        {/* Showcase 3: Complexity Universe & Learning Hub */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 flex flex-col text-left justify-center Order-2 lg:order-1">
+          <div className="lg:col-span-5 flex flex-col text-left justify-center order-2 lg:order-1">
             <div className="w-10 h-10 rounded-xl bg-gold-royal/5 border border-gold-royal/15 flex items-center justify-center mb-6">
-              <BarChart2 size={18} className="text-[#FFD700]" />
+              <GitCompare size={18} className="text-[#FFD700]" />
             </div>
             <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-[0.2em] font-space mb-2">Module 03</p>
             <h2 className="font-clash font-black text-3xl md:text-5xl text-white tracking-tight uppercase leading-tight mb-4">
-              BLOOMBERG-GRADE<br />
-              BENCHMARKING ANALYTICS.
+              FROM COMPLEXITY<br />
+              TO INTUITION.
             </h2>
             <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 font-satoshi">
-              Collect CPU cycle profiles, memory allocation pages, latency heatmaps, and TradingView-style performance charts to inspect asymptotic runtimes. Compare operations side-by-side.
+              Demystify O-notation curves, stability properties, auxiliary space overheads, and design patterns. Build engineering confidence with cheat sheets designed for FAANG technical reviews.
             </p>
-            <Link to="/analytics" className="text-xs font-bold font-space uppercase tracking-wider text-[#FFD700] hover:text-white transition-colors flex items-center gap-1.5 group w-fit">
-              Inspect Analytics <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
+            <Link to="/complexity" className="text-xs font-bold font-space uppercase tracking-wider text-[#FFD700] hover:text-white transition-colors flex items-center gap-1.5 group w-fit">
+              Open Complexity Universe <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          <div className="lg:col-span-7 Order-1 lg:order-2">
-            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-royal/20 to-transparent" />
-              {/* Mock Chart Area */}
-              <div className="h-64 rounded-xl bg-black/60 border border-white/[0.04] p-5 flex flex-col justify-end relative overflow-hidden">
-                <div className="absolute top-4 left-4 flex justify-between w-[92%] text-[10px] font-space text-gray-500">
-                  <span>EXECUTION ANALYSIS</span>
-                  <span>O(N LOG N) AVERAGE</span>
-                </div>
-                <svg width="100%" height="80%" viewBox="0 0 400 150" preserveAspectRatio="none" className="overflow-visible opacity-80">
-                  <path d="M 0,140 L 50,110 L 100,120 L 150,85 L 200,92 L 250,55 L 300,60 L 350,25 L 400,28 L 400,150 L 0,150 Z" fill="rgba(255,215,0,0.04)" />
-                  <path d="M 0,140 L 50,110 L 100,120 L 150,85 L 200,92 L 250,55 L 300,60 L 350,25 L 400,28" fill="none" stroke="#FFD700" strokeWidth="1.5" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Showcase 4: Learning Hub & Complexity */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 order-1 lg:order-2">
             <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-royal/20 to-transparent" />
               {/* Mock Complexity Info */}
@@ -281,65 +261,53 @@ export const Home: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="lg:col-span-5 flex flex-col text-left justify-center">
-            <div className="w-10 h-10 rounded-xl bg-gold-royal/5 border border-gold-royal/15 flex items-center justify-center mb-6">
-              <GitCompare size={18} className="text-[#FFD700]" />
-            </div>
-            <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-[0.2em] font-space mb-2">Module 04</p>
-            <h2 className="font-clash font-black text-3xl md:text-5xl text-white tracking-tight uppercase leading-tight mb-4">
-              FROM COMPLEXITY<br />
-              TO INTUITION.
-            </h2>
-            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 font-satoshi">
-              Demystify O-notation curves, stability properties, auxiliary space overheads, and design patterns. Build engineering confidence with cheat sheets designed for FAANG technical reviews.
-            </p>
-            <Link to="/learn" className="text-xs font-bold font-space uppercase tracking-wider text-[#FFD700] hover:text-white transition-colors flex items-center gap-1.5 group w-fit">
-              Open Learning Hub <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
         </div>
 
-        {/* Showcase 5: Code Studio */}
+        {/* Showcase 4: Interview Prep */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 flex flex-col text-left justify-center Order-2 lg:order-1">
-            <div className="w-10 h-10 rounded-xl bg-gold-royal/5 border border-gold-royal/15 flex items-center justify-center mb-6">
-              <Code2 size={18} className="text-[#FFD700]" />
-            </div>
-            <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-[0.2em] font-space mb-2">Module 05</p>
-            <h2 className="font-clash font-black text-3xl md:text-5xl text-white tracking-tight uppercase leading-tight mb-4">
-              SOURCE TELEMETRY.<br />
-              BYTE-BY-BYTE.
-            </h2>
-            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 font-satoshi">
-              Read step-by-step telemetry, monitor exact lines of source code execution, and measure stack usage profiles. Track variables inside our responsive, dark-bezel IDE panels.
-            </p>
-            <Link to="/code" className="text-xs font-bold font-space uppercase tracking-wider text-[#FFD700] hover:text-white transition-colors flex items-center gap-1.5 group w-fit">
-              Open Code Studio <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="lg:col-span-7 Order-1 lg:order-2">
+          <div className="lg:col-span-7">
             <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-6 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-royal/20 to-transparent" />
-              {/* Mock Code block */}
-              <div className="h-64 rounded-xl bg-black/60 border border-white/[0.04] p-5 flex flex-col justify-start gap-2 relative text-left overflow-y-auto no-scrollbar">
-                <div className="flex items-center gap-2 mb-3 text-[10px] text-gray-500 font-mono border-b border-white/[0.05] pb-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                  <span>quicksort_telemetry.ts</span>
+              {/* Mock Interview Master Info */}
+              <div className="h-64 rounded-xl bg-black/60 border border-white/[0.04] p-5 flex flex-col justify-center gap-3 relative">
+                <div className="flex items-center justify-between border-b border-white/[0.05] pb-2.5">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider font-clash">Interview Readiness</span>
+                  <span className="text-[9px] font-mono text-[#FFD700]">FAANG DRILL</span>
                 </div>
-                <pre className="font-mono text-[10.5px] text-gray-400 space-y-1 select-text">
-                  <div><span className="text-[#0A84FF]">function</span> <span className="text-[#FFD700]">quickSort</span>(arr, low, high) &#123;</div>
-                  <div>  <span className="text-[#0A84FF]">if</span> (low &lt; high) &#123;</div>
-                  <div className="bg-[#FFD700]/5 border-l-2 border-[#FFD700] pl-1.5"><span className="text-gray-400">    let pivotIdx = <span className="text-white">partition</span>(arr, low, high);</span></div>
-                  <div>    <span className="text-white">quickSort</span>(arr, low, pivotIdx - 1);</div>
-                  <div>    <span className="text-white">quickSort</span>(arr, pivotIdx + 1, high);</div>
-                  <div>  &#125;</div>
-                  <div>&#125;</div>
-                </pre>
+                <div className="space-y-2.5 font-space text-[10px] text-white/70">
+                  <div className="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                    <span>Q1: Search in Rotated Sorted Array</span>
+                    <span className="text-red-400 font-bold uppercase">HARD</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                    <span>Q2: Merge k Sorted Lists</span>
+                    <span className="text-red-400 font-bold uppercase">HARD</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-white/[0.02] border border-white/[0.04] rounded-lg">
+                    <span>Q3: Kth Largest Element in an Array</span>
+                    <span className="text-gold-royal font-bold uppercase">MEDIUM</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+          <div className="lg:col-span-5 flex flex-col text-left justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gold-royal/5 border border-gold-royal/15 flex items-center justify-center mb-6">
+              <Sparkles size={18} className="text-[#FFD700]" />
+            </div>
+            <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-[0.2em] font-space mb-2">Module 04</p>
+            <h2 className="font-clash font-black text-3xl md:text-5xl text-white tracking-tight uppercase leading-tight mb-4">
+              TECHNICAL DRILLS.<br />
+              FAANG READY.
+            </h2>
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 font-satoshi">
+              Hone your skills on sorting and binary search interview questions. Read clear solutions, visualize execution tracks, and drill key patterns expected in technical reviews.
+            </p>
+            <Link to="/interview" className="text-xs font-bold font-space uppercase tracking-wider text-[#FFD700] hover:text-white transition-colors flex items-center gap-1.5 group w-fit">
+              Explore Interview Prep <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
-
       </section>
 
       {/* ──── MINIMAL FOOTER ──────────────────────────────── */}

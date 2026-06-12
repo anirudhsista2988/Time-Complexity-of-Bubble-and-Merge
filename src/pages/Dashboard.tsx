@@ -1,17 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BarChart2, Beaker, BookOpen, Code2, GitCompare, Trophy, Zap } from 'lucide-react';
+import { BarChart2, Beaker, BookOpen, GitCompare, Trophy, Zap, Info } from 'lucide-react';
 import { algorithmMeta } from '../features/sorting/sortEngine';
 
 const modules = [
   { icon:Beaker,    label:'Sort Lab',          sub:'10 algorithms, 6 visual modes', path:'/lab',        color:'#FFD700' },
   { icon:Trophy,    label:'Race Arena',         sub:'F1-style live competition',     path:'/race',       color:'#FF453A' },
-  { icon:BarChart2, label:'Analytics Terminal', sub:'Bloomberg-grade benchmarks',    path:'/analytics',  color:'#0A84FF' },
-  { icon:BookOpen,  label:'Learning Center',    sub:'Theory to practice',            path:'/learn',      color:'#30D158' },
-  { icon:Code2,     label:'Code Studio',        sub:'6 programming languages',       path:'/code',       color:'#BF5AF2' },
+  { icon:BookOpen,  label:'Learning Hub',       sub:'Theory to practice',            path:'/learn',      color:'#30D158' },
   { icon:GitCompare,label:'Complexity Universe',sub:'Interactive O-notation map',    path:'/complexity', color:'#5AC8FA' },
-  { icon:Zap,       label:'Interview Master',   sub:'FAANG preparation',             path:'/interview',  color:'#FF9F0A' },
+  { icon:Zap,       label:'Interview Prep',     sub:'FAANG preparation',             path:'/interview',  color:'#FF9F0A' },
+  { icon:Info,      label:'About',              sub:'Our mission and core vision',   path:'/about',      color:'#AEAEB2' },
 ];
 
 const algoList = Object.values(algorithmMeta);
@@ -65,7 +64,7 @@ export const Dashboard: React.FC = () => {
         {[
           { label:'Algorithms', value:'10', sub:'Fully implemented', icon:Beaker },
           { label:'Visual Modes', value:'6', sub:'Switch anytime', icon:BarChart2 },
-          { label:'Languages', value:'6', sub:'Code Studio', icon:Code2 },
+          { label:'Complexity Classes', value:'6', sub:'O(1) to O(2ⁿ)', icon:GitCompare },
           { label:'Interview Qs', value:'50+', sub:'FAANG ready', icon:Zap },
         ].map(({label,value,sub,icon:Icon},i) => (
           <motion.div key={label}

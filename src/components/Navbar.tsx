@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart2, Beaker, BookOpen, Code2, GitCompare, Layers, Menu, Trophy, X, Zap } from 'lucide-react';
+import { Beaker, BookOpen, GitCompare, Menu, Trophy, X, Zap, Home, Info } from 'lucide-react';
 
 const links = [
-  { path: '/dashboard',  label: 'Command Center', icon: Layers },
-  { path: '/lab',        label: 'Sort Lab',        icon: Beaker },
-  { path: '/race',       label: 'Race Arena',      icon: Trophy },
-  { path: '/analytics',  label: 'Analytics',       icon: BarChart2 },
-  { path: '/learn',      label: 'Learning',        icon: BookOpen },
-  { path: '/code',       label: 'Code Studio',     icon: Code2 },
-  { path: '/complexity', label: 'Complexity',      icon: GitCompare },
-  { path: '/interview',  label: 'Interview',       icon: Zap },
+  { path: '/',           label: 'Home',                icon: Home },
+  { path: '/lab',        label: 'Sort Lab',            icon: Beaker },
+  { path: '/race',       label: 'Race Arena',          icon: Trophy },
+  { path: '/learn',      label: 'Learning Hub',        icon: BookOpen },
+  { path: '/complexity', label: 'Complexity Universe', icon: GitCompare },
+  { path: '/interview',  label: 'Interview Prep',      icon: Zap },
+  { path: '/about',      label: 'About',               icon: Info },
 ];
 
 export const Navbar: React.FC = () => {

@@ -137,6 +137,10 @@ def run_insertion_sort(input_arr: List[int]) -> List[dict]:
             j -= 1
             push(s, f"Moving {arr[j+1]} right to make room for {key}", 3, i)
         arr[j + 1] = key
+        s_post = ["default"] * n
+        for k in range(i + 1):
+            s_post[k] = 'sorted'
+        push(s_post, f"Inserted key {key} at position {j + 1}", 6, i)
 
     push(["sorted"] * n, 'Array fully sorted! ✓', 6)
     return frames
@@ -192,10 +196,18 @@ def run_merge_sort(input_arr: List[int]) -> List[dict]:
             arr[k] = left[i]
             i += 1
             k += 1
+            s_rem = ["default"] * n
+            for x in range(l, k):
+                s_rem[x] = 'merge'
+            push(s_rem, f"Placed remaining left element {arr[k-1]} at position {k-1}", 5)
         while j < len(right):
             arr[k] = right[j]
             j += 1
             k += 1
+            s_rem = ["default"] * n
+            for x in range(l, k):
+                s_rem[x] = 'merge'
+            push(s_rem, f"Placed remaining right element {arr[k-1]} at position {k-1}", 5)
 
         s = ["default"] * n
         for x in range(l, r + 1):
@@ -246,7 +258,7 @@ def run_quick_sort(input_arr: List[int]) -> List[dict]:
         i = lo - 1
         s0 = ["default"] * n
         s0[hi] = 'pivot'
-        push(s0, f"Pivot selected: {pivot_val} at index ${hi}", 5)
+        push(s0, f"Pivot selected: {pivot_val} at index {hi}", 5)
 
         for j in range(lo, hi):
             comparisons += 1

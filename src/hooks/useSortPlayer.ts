@@ -7,6 +7,16 @@ export function useSortPlayer(frames: SortFrame[], defaultSpeed = 80) {
   const [speed, setSpeed] = useState(defaultSpeed);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Reset index and stop playback when frames change (e.g., changing array size or algorithm)
+  useEffect(() => {
+    setIdx(0);
+    setPlaying(false);
+    if (timer.current) {
+      clearInterval(timer.current);
+      timer.current = null;
+    }
+  }, [frames]);
+
   const stop = useCallback(() => {
     setPlaying(false);
     if (timer.current) { clearInterval(timer.current); timer.current = null; }

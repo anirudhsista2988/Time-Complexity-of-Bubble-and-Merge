@@ -6,9 +6,8 @@ import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { SortLab } from './pages/SortLab';
 import { RaceArena } from './pages/RaceArena';
-import { Analytics } from './pages/Analytics';
+import { About } from './pages/About';
 import { LearningCenter } from './pages/LearningCenter';
-import { CodeStudio } from './pages/CodeStudio';
 import { ComplexityUniverse } from './pages/ComplexityUniverse';
 import { InterviewMaster } from './pages/InterviewMaster';
 
@@ -32,9 +31,8 @@ function AppRoutes() {
         <Route path="/dashboard"  element={<PageWrap><Dashboard /></PageWrap>} />
         <Route path="/lab"        element={<PageWrap><SortLab /></PageWrap>} />
         <Route path="/race"       element={<PageWrap><RaceArena /></PageWrap>} />
-        <Route path="/analytics"  element={<PageWrap><Analytics /></PageWrap>} />
+        <Route path="/about"      element={<PageWrap><About /></PageWrap>} />
         <Route path="/learn"      element={<PageWrap><LearningCenter /></PageWrap>} />
-        <Route path="/code"       element={<PageWrap><CodeStudio /></PageWrap>} />
         <Route path="/complexity" element={<PageWrap><ComplexityUniverse /></PageWrap>} />
         <Route path="/interview"  element={<PageWrap><InterviewMaster /></PageWrap>} />
       </Routes>

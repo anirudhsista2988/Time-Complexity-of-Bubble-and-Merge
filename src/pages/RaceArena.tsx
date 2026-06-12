@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { SortFrame, AlgorithmId } from '../types/sorting';
-import { Trophy, Activity } from 'lucide-react';
+import { Trophy, Activity, GitCompare } from 'lucide-react';
 import { genArray } from '../utils/array';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -780,7 +780,8 @@ export const RaceArena: React.FC = () => {
 
         {/* Podium and Final Stats */}
         {raceCompleted && raceResults.length === selected.size && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Podium Component */}
             <div className="lg:col-span-1 rounded-2xl border border-white/[0.05] p-5 glass-ultra flex flex-col justify-between">
               <div>
@@ -866,7 +867,67 @@ export const RaceArena: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+
+          {/* Complexity & Theoretical Profile Comparison */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-white/[0.05] p-6 glass-ultra mt-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[rgba(255,215,0,0.22)] bg-[rgba(255,215,0,0.06)]">
+                <GitCompare size={18} className="text-[#FFD700]" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white font-satoshi uppercase tracking-wider">Complexity & Theoretical Comparison</h3>
+                <p className="text-[10px] text-white/30 font-space uppercase">Theory meets real-world execution telemetry</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-white/[0.05] bg-black/25">
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Algorithm</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Best Case</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Average Case</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Worst Case</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Space Complexity</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Stability</th>
+                    <th className="px-4 py-3 text-[10px] text-white/30 font-space font-black uppercase tracking-wider">Memory Mode</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from(selected).map(id => {
+                    const m = algorithmMeta[id];
+                    return (
+                      <tr key={id} className="border-b border-white/[0.03] hover:bg-white/[0.01] transition-colors">
+                        <td className="px-4 py-3.5 flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-sm" style={{ background: m.color, boxShadow: `0 0 6px ${m.color}` }} />
+                          <span className="text-white font-bold font-satoshi uppercase">{m.name}</span>
+                        </td>
+                        <td className="px-4 py-3.5 text-green-400 font-mono font-semibold">{m.best}</td>
+                        <td className="px-4 py-3.5 text-gold-royal font-mono font-semibold">{m.average}</td>
+                        <td className="px-4 py-3.5 text-red-400 font-mono font-semibold">{m.worst}</td>
+                        <td className="px-4 py-3.5 text-blue-400 font-mono font-semibold">{m.space}</td>
+                        <td className="px-4 py-3.5">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold font-space ${m.stable ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                            {m.stable ? 'Stable' : 'Unstable'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold font-space ${m.inPlace ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'}`}>
+                            {m.inPlace ? 'In-Place' : 'Out-of-Place'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        </>
+      )}
 
         {/* Commentary Terminal */}
         <div className="rounded-2xl border border-white/[0.05] overflow-hidden glass-ultra">
