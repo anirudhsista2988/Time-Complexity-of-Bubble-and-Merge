@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AmbientCanvas } from '../components/AmbientCanvas';
 import { GlassSculptureCanvas } from '../components/GlassSculptureCanvas';
 import { 
   ArrowRight, Beaker, Trophy, 
@@ -10,9 +9,7 @@ import {
 
 export const Home: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#020202] text-gray-200 font-general relative selection:bg-gold-royal/20 selection:text-[#FFD700]">
-      <AmbientCanvas />
-
+    <div className="min-h-screen bg-transparent text-gray-200 font-general relative selection:bg-gold-royal/20 selection:text-[#FFD700]">
       {/* ──── HERO SECTION (FIRST FOLD) ──────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 px-6 md:px-12 max-w-screen-2xl mx-auto overflow-hidden">
         
