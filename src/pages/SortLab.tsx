@@ -5,6 +5,7 @@ import { algorithmMeta } from '../features/sorting/sortEngine';
 import type { SortFrame, AlgorithmId } from '../types/sorting';
 import { Pause, Play, RefreshCcw, Shuffle, SkipBack, SkipForward, Trophy } from 'lucide-react';
 import { genArray } from '../utils/array';
+import { AlgorithmCarousel } from '../components/AlgorithmCarousel';
 
 type VisMode = 'bars' | 'skyline' | 'circular' | 'particle' | 'matrix' | 'isometric';
 const ALGO_IDS = Object.keys(algorithmMeta) as AlgorithmId[];
@@ -508,6 +509,8 @@ export const SortLab: React.FC = () => {
       <div className="flex flex-1 overflow-hidden min-h-0 relative z-10">
         {/* ── Main visualizer area ── */}
         <div className="flex-1 flex flex-col p-6 gap-4 min-w-0">
+          <AlgorithmCarousel activeId={algoId} onChange={changeAlgo} />
+
           {/* Progress bar */}
           <div className="h-[2px] bg-white/[0.04] rounded-full overflow-hidden shrink-0">
             <div className="h-full transition-all duration-100 rounded-full"
